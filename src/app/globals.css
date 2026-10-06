@@ -1,0 +1,26 @@
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/sora';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body { @apply bg-white font-body text-base text-ink antialiased; }
+  /* Mobile reading size: 17px body */
+  @media (max-width: 639px) { body { font-size: 1.0625rem; line-height: 1.6875rem; } }
+  h1, h2, h3, h4 { @apply font-display text-navy; letter-spacing: -0.01em; }
+  :focus-visible { outline: 2px solid #0E7C6B; outline-offset: 2px; border-radius: 6px; }
+  input, select, textarea { font-size: 16px; } /* prevents iOS zoom */
+}
+
+@layer utilities {
+  .container-page { @apply mx-auto w-full max-w-container px-4 sm:px-6; }
+  .section { @apply py-16 sm:py-24; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
