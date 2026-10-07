@@ -318,12 +318,17 @@ export function Accordion({ items }: { items: { q: string; a: ReactNode }[] }) {
 }
 
 /* ---------- EmptyState / Skeleton ---------- */
-export function EmptyState({ icon, title, body, action }: { icon: ReactNode; title: string; body: string; action?: ReactNode }) {
+export function EmptyState({ icon, title, body, action, illustration }: { icon?: ReactNode; title: string; body: string; action?: ReactNode; illustration?: boolean }) {
   return (
     <div className="flex flex-col items-center rounded-card border border-dashed border-line bg-white px-6 py-12 text-center">
-      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-teal-50 text-teal" aria-hidden>
-        {icon}
-      </span>
+      {illustration ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src="/placeholders/empty-state.jpg" alt="" width={160} height={160} className="h-40 w-40 object-contain" />
+      ) : (
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-teal-50 text-teal" aria-hidden>
+          {icon}
+        </span>
+      )}
       <h3 className="mt-4 text-h3 font-semibold">{title}</h3>
       <p className="mt-2 max-w-md text-base text-ink-muted">{body}</p>
       {action && <div className="mt-6">{action}</div>}

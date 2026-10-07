@@ -201,7 +201,7 @@ export default function HomePage() {
             ].map(([kind, title], i) => (
               <Link key={title} href="/research" className="group overflow-hidden rounded-card border border-line bg-white shadow-card transition hover:shadow-raised">
                 <div className="relative aspect-[16/10]">
-                  <Image src={images.research[i].src} alt="" fill sizes="(min-width:768px) 380px, 100vw" className="object-cover" />
+                  <Image src={images.research[i].src} alt={images.research[i].alt} fill sizes="(min-width:768px) 380px, 100vw" className="object-cover" />
                 </div>
                 <div className="p-6">
                   <p className="text-sm font-semibold uppercase tracking-wide text-teal">

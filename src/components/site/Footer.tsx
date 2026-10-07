@@ -73,11 +73,17 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-white/10">
-        <div className="container-page flex flex-col gap-2 py-6 text-sm text-white/70 sm:flex-row sm:items-center sm:justify-between">
+        <div className="container-page flex flex-col gap-2 py-6 text-sm text-white/70 lg:flex-row lg:items-center lg:justify-between">
           <p>© {new Date().getFullYear()} Taraba State University. All rights reserved.</p>
           <p>
             <Link href="/privacy" className="hover:text-white">Privacy policy</Link>
             <span className="mx-2">·</span>Part of Taraba State University
+          </p>
+          <p>
+            Built and Managed by{' '}
+            <a href="https://www.kmfenterprise.ng/" target="_blank" rel="noopener" className="font-semibold text-white hover:text-teal-100">
+              KMFenterprise
+            </a>
           </p>
         </div>
       </div>

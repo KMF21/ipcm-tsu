@@ -15,23 +15,30 @@ const ph = (file: string, alt: string, width: number, height: number): SiteImage
 
 export const images = {
   logo: { src: '/tsu-logo.png', alt: 'Taraba State University logo', width: 500, height: 500, placeholder: false },
-  hero: ph('hero.png', 'Participants in a community dialogue session', 2400, 1350),
-  about: ph('about.png', 'Taraba State University campus', 1600, 1200),
-  og: ph('og-default.jpg', 'Institute of Peace and Conflict Management', 1200, 630),
+  // AI-generated stand-ins (Gemini). Keep placeholder: true until replaced with real IPCM photography.
+  hero: ph('hero.jpg', 'Community leaders, women and officials in a dialogue circle led by a facilitator', 1672, 941),
+  about: ph('about.jpg', 'A lecturer addressing adult participants in a university seminar room', 1448, 1086),
+  og: ph('og-default.jpg', 'Two people shaking hands in reconciliation at a community gathering', 1424, 752),
+  emptyState: ph('empty-state.jpg', '', 1024, 1024),
+  certificateTexture: ph('certificate-texture.jpg', '', 1200, 896),
   programmes: {
-    PCM: ph('programme-pcm.png', 'Peace and conflict management class in session', 1200, 900),
-    NMA: ph('programme-nma.png', 'Mediation practice session', 1200, 900),
-    CEW: ph('programme-cew.png', 'Conflict mapping workshop', 1200, 900),
-    PHR: ph('programme-phr.jpg', 'Community recovery meeting', 1200, 900),
-    PSS: ph('programme-pss.png', 'Security and community leaders in dialogue', 1200, 900),
+    PCM: ph('programme-pcm.jpg', 'Participants mapping a conflict with sticky notes during group work', 1448, 1086),
+    NMA: ph('programme-nma.jpg', 'A mediator guiding a calm conversation between two community members', 1448, 1086),
+    CEW: ph('programme-cew.jpg', 'An analyst marking a regional map while a colleague points to an area', 1448, 1086),
+    PHR: ph('programme-phr.jpg', 'A humanitarian worker talking gently with an older woman outside her home', 1200, 896),
+    PSS: ph('programme-pss.jpg', 'Two police officers listening to a village elder under a shade tree', 1448, 1086),
   } as Record<string, SiteImage>,
   programmeHeroes: {
-    NMA: ph('programme-nma-hero.png', 'Mediation practice session', 2400, 1350),
+    PCM: ph('programme-pcm-hero.jpg', 'A university classroom of adult participants at a peace workshop', 1672, 941),
+    NMA: ph('programme-nma-hero.jpg', 'Elders and community members meeting under a tree with a mediator', 1672, 941),
+    CEW: ph('programme-cew-hero.jpg', 'Officials, a police officer and a traditional leader reviewing maps together', 1672, 941),
+    PHR: ph('programme-phr-hero.jpg', 'Community members replanting a farm and repairing a wall together', 1376, 768),
+    PSS: ph('programme-pss-hero.jpg', 'Security personnel and civilians attending a seminar in a university hall', 1672, 941),
   } as Record<string, SiteImage>,
   research: [
-    ph('research-1.png', 'Research brief cover', 1200, 900),
-    ph('research-2.jpg', 'Research brief cover', 1200, 900),
-    ph('research-3.jpg', 'Research brief cover', 1200, 900),
+    ph('research-1.jpg', 'Cattle grazing beside a maize farm at sunset while a herder rests nearby', 1448, 1086),
+    ph('research-2.jpg', 'Young people in a dialogue circle as a young woman speaks', 1200, 896),
+    ph('research-3.jpg', 'A local peace committee of mixed faiths meeting around a table', 1200, 896),
   ],
 }
 
