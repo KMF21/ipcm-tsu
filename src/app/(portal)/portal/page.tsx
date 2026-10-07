@@ -3,6 +3,8 @@ import { ArrowRight, BookOpen, CalendarCheck2, ClipboardCheck, MapPin, Megaphone
 import { Alert, Badge, ButtonLink, Card, CardHeader, ProgressBar, StatCard, StatusPill } from '@/components/ui'
 import { demoAnnouncements, demoModules, demoSessions, demoStudent, demoWeek } from '@/lib/demo'
 import { cn } from '@/lib/utils'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 
 const sessionTone: Record<string, string> = {
   teal: 'border-l-teal bg-teal-50',
@@ -12,7 +14,15 @@ const sessionTone: Record<string, string> = {
   neutral: 'border-l-line bg-canvas',
 }
 
-export default function StudentDashboard() {
+export default async function StudentDashboard({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
+  // Until someone is admitted, their home is their application. Admitted students see the dashboard.
+  // (In preview mode with no session, the demo dashboard is shown for design review.)
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
+    const { data: enrolment } = await supabase.from('enrolments').select('id').eq('user_id', user.id).limit(1).maybeSingle()
+    if (!enrolment) redirect((await searchParams).saved ? '/portal/apply?saved=1' : '/portal/apply')
+  }
   return (
     <div className="mx-auto max-w-[1400px]">
       <Alert tone="info" title="Design preview">

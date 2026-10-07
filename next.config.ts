@@ -1,6 +1,10 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // Document uploads go through Server Actions (largest allowed file is 2 MB).
+    serverActions: { bodySizeLimit: '3mb' },
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
   },

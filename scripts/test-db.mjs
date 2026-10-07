@@ -24,6 +24,7 @@ for (const f of readdirSync(dir + '/migrations').sort()) {
 try { await db.exec(readFileSync(`${dir}/seed.sql`, 'utf8')); console.log('OK seed.sql') } catch (e) { console.log('SEED FAIL:', e.message, e.position); process.exit(1) }
 
 // ---- Behaviour tests ----
+console.log('states/lgas:', (await db.query(`select (select count(*) from public.states) s, (select count(*) from public.lgas) l, (select count(*) from public.lgas l join public.states s on s.id=l.state_id where s.name='Taraba') taraba`)).rows[0])
 const one = async (s, p) => (await db.query(s, p)).rows
 const [u] = await one(`insert into auth.users (email, raw_user_meta_data) values ('amina@example.com','{"first_name":"Amina","surname":"Bello"}') returning id`)
 const [prof] = await one(`select role, first_name from public.profiles where id=$1`, [u.id]); console.log('profile on signup:', prof)

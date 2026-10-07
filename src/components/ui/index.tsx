@@ -213,9 +213,11 @@ export const Input = forwardRef<HTMLInputElement, ComponentProps<'input'> & { in
   return <input ref={ref} className={cn(inputBase, invalid ? 'border-crimson' : 'border-line', className)} aria-invalid={invalid || undefined} {...props} />
 })
 
-export function Select({ className, invalid, children, ...props }: ComponentProps<'select'> & { invalid?: boolean }) {
+const chevron = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%234A5468' stroke-width='2'%3E%3Cpath d='m5 8 5 5 5-5'/%3E%3C/svg%3E")`
+
+export function Select({ className, invalid, children, style, ...props }: ComponentProps<'select'> & { invalid?: boolean }) {
   return (
-    <select className={cn(inputBase, 'appearance-none bg-[url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2720%27 height=%2720%27 fill=%27none%27 stroke=%27%234A5468%27 stroke-width=%272%27%3E%3Cpath d=%27m5 8 5 5 5-5%27/%3E%3C/svg%3E")] bg-[right_14px_center] bg-no-repeat pr-11', invalid ? 'border-crimson' : 'border-line', className)} {...props}>
+    <select style={{ backgroundImage: chevron, ...style }} className={cn(inputBase, 'appearance-none bg-no-repeat pr-11 [background-position:right_14px_center]', invalid ? 'border-crimson' : 'border-line', className)} {...props}>
       {children}
     </select>
   )
