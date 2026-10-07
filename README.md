@@ -62,6 +62,12 @@ switched back on, the app automatically falls back to the "check your email" flo
 In **Authentication → Policies / Passwords**: minimum length **8**, no required character types, and
 **leaked password protection off**, so simple passwords such as a phone number are accepted.
 
+In **Authentication → Rate Limits**: raise **sign-ups and sign-ins** (per 5 minutes per IP) to about **150**.
+Applicants often register together on one shared Wi-Fi, which Supabase sees as a single IP address.
+
+Before launch, set **Authentication → SMTP Settings** to a real sender (Resend, TSU address). The built-in
+Supabase email is for testing only and allows just a few emails per hour for the whole project.
+
 In **Authentication → Email Templates**, replace the templates (the reset template is still used; confirm-signup only matters if confirmation is switched back on) with the files in `supabase/email-templates/`:
 
 - **Confirm signup** → `confirm-signup.html`

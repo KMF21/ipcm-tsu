@@ -37,7 +37,9 @@ function friendly(message: string): string {
   if (m.includes('invalid login credentials')) return 'That email and password don’t match. Check them and try again.'
   if (m.includes('email not confirmed')) return 'Please confirm your email first. Check your inbox for the link we sent.'
   if (m.includes('already registered') || m.includes('already been registered')) return 'An account with this email already exists. Log in instead.'
-  if (m.includes('rate limit') || m.includes('too many')) return 'Too many attempts. Please wait a few minutes and try again.'
+  // Supabase project limits (Authentication → Rate Limits). Email-sending limit is separate from attempt limits.
+  if (m.includes('email rate limit')) return 'We can’t send more emails right now. Please try again in an hour, or ask the IPCM office for help.'
+  if (m.includes('rate limit') || m.includes('too many')) return 'Too many attempts from this network. Please wait a few minutes and try again.'
   if (m.includes('should be different')) return 'Choose a password different from your old one.'
   if (m.includes('weak') || m.includes('pwned')) return 'That password is too easy to guess. Choose a stronger one.'
   return 'Something went wrong. Please try again in a moment.'
