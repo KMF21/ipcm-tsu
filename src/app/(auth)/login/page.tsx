@@ -16,7 +16,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         {sp.error === 'link' && <Alert tone="error" title="That link has expired or was already used">Log in below, or request a new link.</Alert>}
       </div>
       <LoginForm next={sp.next} />
-      <p className="mt-8 border-t border-line pt-6 text-center text-base text-ink-muted">
+      <p className="mt-6 border-t border-line pt-5 text-center text-base text-ink-muted">
         New to IPCM?{' '}
         <Link href={sp.next ? `/register?next=${encodeURIComponent(sp.next)}` : '/register'} className="font-semibold text-teal hover:underline">Create an account</Link>
       </p>

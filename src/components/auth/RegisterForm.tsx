@@ -10,17 +10,15 @@ export function RegisterForm({ next }: { next?: string }) {
   const e = state.errors ?? {}
   const v = state.values ?? {}
   return (
-    <form action={action} className="space-y-5" noValidate>
+    <form action={action} className="space-y-4" noValidate>
       <FormError message={state.message} />
       <input type="hidden" name="next" value={next ?? ''} />
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
         <TextField name="firstName" label="First name" autoComplete="given-name" error={e.firstName} defaultValue={v.firstName} />
         <TextField name="surname" label="Surname" autoComplete="family-name" error={e.surname} defaultValue={v.surname} />
       </div>
       <TextField name="email" label="Email address" type="email" inputMode="email" autoComplete="email" hint="We’ll send a confirmation link here" error={e.email} defaultValue={v.email} />
-      <TextField name="phone" label="Phone number" type="tel" inputMode="tel" autoComplete="tel" placeholder="0803 000 0000" hint="For admission updates" error={e.phone} defaultValue={v.phone} />
-      <PasswordField name="password" label="Create a password" autoComplete="new-password" hint="At least 8 characters" error={e.password} />
-      <PasswordField name="confirmPassword" label="Confirm password" autoComplete="new-password" error={e.confirmPassword} />
+      <PasswordField name="password" label="Create a password" autoComplete="new-password" hint="At least 8 characters. Tap the eye to check it." error={e.password} />
       <div>
         <label className="flex cursor-pointer items-start gap-3 text-base text-ink">
           <input type="checkbox" name="terms" className="mt-1 h-5 w-5 shrink-0 rounded border-line accent-teal" aria-invalid={!!e.terms || undefined} />

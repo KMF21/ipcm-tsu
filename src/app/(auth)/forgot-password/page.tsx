@@ -9,7 +9,7 @@ export default function ForgotPasswordPage() {
     <>
       <AuthHeading title="Forgot your password?" intro="Enter the email you registered with and we’ll send you a link to set a new password." />
       <ForgotForm />
-      <p className="mt-8 border-t border-line pt-6 text-center text-base text-ink-muted">
+      <p className="mt-6 border-t border-line pt-5 text-center text-base text-ink-muted">
         Remembered it? <Link href="/login" className="font-semibold text-teal hover:underline">Log in</Link>
       </p>
     </>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { normaliseNigerianPhone, signUpSchema } from '../validation/auth'
+import { normaliseNigerianPhone, phoneSchema, signUpSchema } from '../validation/auth'
 
 describe('normaliseNigerianPhone', () => {
   it('normalises common Nigerian formats', () => {
@@ -14,16 +14,17 @@ describe('normaliseNigerianPhone', () => {
 })
 
 describe('signUpSchema', () => {
-  const base = { firstName: 'Amina', surname: 'Bello', email: ' Amina@Example.com ', phone: '0803 000 0000', password: 'peace2027!', confirmPassword: 'peace2027!', terms: 'on' }
-  it('accepts valid input and normalises email and phone', () => {
+  const base = { firstName: 'Amina', surname: 'Bello', email: ' Amina@Example.com ', password: 'peace2027!', terms: 'on' }
+  it('accepts valid input and normalises email', () => {
     const r = signUpSchema.safeParse(base)
     expect(r.success).toBe(true)
-    if (r.success) {
-      expect(r.data.email).toBe('amina@example.com')
-      expect(r.data.phone).toBe('+2348030000000')
-    }
+    if (r.success) expect(r.data.email).toBe('amina@example.com')
   })
-  it('rejects mismatched passwords', () => {
-    expect(signUpSchema.safeParse({ ...base, confirmPassword: 'other' }).success).toBe(false)
+  it('rejects short passwords and missing consent', () => {
+    expect(signUpSchema.safeParse({ ...base, password: 'short' }).success).toBe(false)
+    expect(signUpSchema.safeParse({ ...base, terms: undefined }).success).toBe(false)
+  })
+  it('normalises phone numbers in the application form', () => {
+    expect(phoneSchema.parse('0803 000 0000')).toBe('+2348030000000')
   })
 })

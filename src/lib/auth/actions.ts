@@ -44,18 +44,18 @@ function friendly(message: string): string {
 }
 
 export async function signUp(_: FormState, fd: FormData): Promise<FormState> {
-  const values = keep(fd, 'firstName', 'surname', 'email', 'phone')
+  const values = keep(fd, 'firstName', 'surname', 'email')
   const parsed = signUpSchema.safeParse(Object.fromEntries(fd))
   if (!parsed.success) return { errors: fieldErrors(parsed.error.issues), values }
 
-  const { firstName, surname, email, phone, password } = parsed.data
+  const { firstName, surname, email, password } = parsed.data
   const next = safeNext(String(fd.get('next') ?? ''), '/portal')
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: { first_name: firstName, surname, phone }, // read by the handle_new_user trigger
+      data: { first_name: firstName, surname }, // read by the handle_new_user trigger
       emailRedirectTo: `${await siteUrl()}/auth/callback?next=${encodeURIComponent(next)}`,
     },
   })

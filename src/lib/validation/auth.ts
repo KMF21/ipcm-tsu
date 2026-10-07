@@ -10,32 +10,29 @@ export function normaliseNigerianPhone(raw: string): string | null {
   return m ? `+234${m[1]}` : null
 }
 
-export const signUpSchema = z
-  .object({
-    firstName: z.string().trim().min(2, 'Enter your first name').max(60),
-    surname: z.string().trim().min(2, 'Enter your surname').max(60),
-    email,
-    phone: z
-      .string()
-      .trim()
-      .transform((v, ctx) => {
-        const n = normaliseNigerianPhone(v)
-        if (!n) ctx.addIssue({ code: 'custom', message: 'Enter a valid Nigerian phone number, e.g. 0803 000 0000' })
-        return n ?? v
-      }),
-    password,
-    confirmPassword: z.string(),
-    terms: z.literal('on', { message: 'Please accept the privacy notice to continue' }),
+export const signUpSchema = z.object({
+  firstName: z.string().trim().min(2, 'Enter your first name').max(60),
+  surname: z.string().trim().min(2, 'Enter your surname').max(60),
+  email,
+  password,
+  terms: z.literal('on', { message: 'Please accept the privacy notice to continue' }),
+})
+
+/** Phone is collected in the application form, where it is validated and normalised. */
+export const phoneSchema = z
+  .string()
+  .trim()
+  .transform((v, ctx) => {
+    const n = normaliseNigerianPhone(v)
+    if (!n) ctx.addIssue({ code: 'custom', message: 'Enter a valid Nigerian phone number, e.g. 0803 000 0000' })
+    return n ?? v
   })
-  .refine((d) => d.password === d.confirmPassword, { path: ['confirmPassword'], message: 'Passwords do not match' })
 
 export const signInSchema = z.object({ email, password: z.string().min(1, 'Enter your password') })
 
 export const forgotSchema = z.object({ email })
 
-export const resetSchema = z
-  .object({ password, confirmPassword: z.string() })
-  .refine((d) => d.password === d.confirmPassword, { path: ['confirmPassword'], message: 'Passwords do not match' })
+export const resetSchema = z.object({ password })
 
 export type FieldErrors = Partial<Record<string, string>>
 

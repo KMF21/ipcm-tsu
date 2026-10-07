@@ -16,7 +16,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
         intro={p ? <>You’re applying for <strong className="text-navy">{p.shortTitle}</strong>. Start with an account so you can save and return to your application.</> : 'Start with an account. You can save your application and come back to it at any time.'}
       />
       <RegisterForm next={next} />
-      <p className="mt-8 border-t border-line pt-6 text-center text-base text-ink-muted">
+      <p className="mt-6 border-t border-line pt-5 text-center text-base text-ink-muted">
         Already have an account?{' '}
         <Link href={`/login?next=${encodeURIComponent(next)}`} className="font-semibold text-teal hover:underline">Log in</Link>
       </p>
