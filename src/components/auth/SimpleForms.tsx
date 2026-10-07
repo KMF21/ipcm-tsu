@@ -21,7 +21,7 @@ export function ResetForm() {
   return (
     <form action={action} className="space-y-5" noValidate>
       <FormError message={state.message} />
-      <PasswordField name="password" label="New password" autoComplete="new-password" hint="At least 8 characters. Tap the eye to check it." error={state.errors?.password} />
+      <PasswordField name="password" label="New password" autoComplete="new-password" hint="Any 8 or more characters. Tap the eye to check it." error={state.errors?.password} />
       <SubmitButton pendingLabel="Saving…">Save new password</SubmitButton>
     </form>
   )

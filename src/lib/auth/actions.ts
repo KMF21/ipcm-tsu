@@ -69,6 +69,13 @@ export async function signUp(_: FormState, fd: FormData): Promise<FormState> {
   if (data.user && data.user.identities?.length === 0) {
     return { errors: { email: 'An account with this email already exists. Log in instead.' }, values }
   }
+  // With "Confirm email" switched off in Supabase, sign-up returns a session straight away:
+  // the applicant goes directly to their application. If confirmation is ever switched back on,
+  // there's no session yet, so we fall back to the "check your email" screen.
+  if (data.session) {
+    const programme = (next.match(/programme=([A-Z]{2,5})/) ?? [])[1]
+    redirect(`/portal/apply?welcome=1${programme ? `&programme=${programme}` : ''}`)
+  }
   redirect(`/verify-email?email=${encodeURIComponent(email)}`)
 }
 

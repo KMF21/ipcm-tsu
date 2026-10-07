@@ -28,3 +28,12 @@ describe('signUpSchema', () => {
     expect(phoneSchema.parse('0803 000 0000')).toBe('+2348030000000')
   })
 })
+
+describe('simple passwords', () => {
+  it('accepts any 8+ characters, including a phone number', () => {
+    const base = { firstName: 'Musa', surname: 'Ibrahim', email: 'musa@example.com', terms: 'on' }
+    for (const password of ['08031234567', 'jalingo1', 'password']) {
+      expect(signUpSchema.safeParse({ ...base, password }).success).toBe(true)
+    }
+  })
+})

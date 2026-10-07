@@ -17,8 +17,8 @@ export function RegisterForm({ next }: { next?: string }) {
         <TextField name="firstName" label="First name" autoComplete="given-name" error={e.firstName} defaultValue={v.firstName} />
         <TextField name="surname" label="Surname" autoComplete="family-name" error={e.surname} defaultValue={v.surname} />
       </div>
-      <TextField name="email" label="Email address" type="email" inputMode="email" autoComplete="email" hint="We’ll send a confirmation link here" error={e.email} defaultValue={v.email} />
-      <PasswordField name="password" label="Create a password" autoComplete="new-password" hint="At least 8 characters. Tap the eye to check it." error={e.password} />
+      <TextField name="email" label="Email address" type="email" inputMode="email" autoComplete="email" hint="Use an email you can open. We send receipts and admission updates here." error={e.email} defaultValue={v.email} />
+      <PasswordField name="password" label="Create a password" autoComplete="new-password" hint="Any 8 or more characters, e.g. your phone number. Tap the eye to check it." error={e.password} />
       <div>
         <label className="flex cursor-pointer items-start gap-3 text-base text-ink">
           <input type="checkbox" name="terms" className="mt-1 h-5 w-5 shrink-0 rounded border-line accent-teal" aria-invalid={!!e.terms || undefined} />

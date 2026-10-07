@@ -55,9 +55,14 @@ In Supabase → **Authentication → URL Configuration**:
 - **Site URL:** your production URL (e.g. `https://ipcm.tsu.edu.ng`, or the Vercel URL for now)
 - **Redirect URLs:** add `https://<your-domain>/auth/callback` and `http://localhost:3000/auth/callback`
 
-In **Authentication → Providers → Email**: keep **Confirm email** on.
+In **Authentication → Providers → Email** (or **Sign In / Providers**): turn **Confirm email OFF**.
+Applicants go straight into their application after signing up; no email step. (If it is ever
+switched back on, the app automatically falls back to the "check your email" flow below.)
 
-In **Authentication → Email Templates**, replace the templates with the files in `supabase/email-templates/`:
+In **Authentication → Policies / Passwords**: minimum length **8**, no required character types, and
+**leaked password protection off**, so simple passwords such as a phone number are accepted.
+
+In **Authentication → Email Templates**, replace the templates (the reset template is still used; confirm-signup only matters if confirmation is switched back on) with the files in `supabase/email-templates/`:
 
 - **Confirm signup** → `confirm-signup.html`
 - **Reset password** → `reset-password.html`
