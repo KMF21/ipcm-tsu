@@ -109,6 +109,7 @@ export type ApplicationDetail = {
     organisation: string | null; job_role: string | null; lgas: { name: string; states: { name: string } | null } | null
   } | null
   documents: { id: string; type: string; storage_path: string; mime: string; size_bytes: number; status: 'pending' | 'approved' | 'rejected'; rejection_reason: string | null; reviewed_at: string | null; created_at: string }[]
+  emails?: { id: number; kind: string; subject: string; status: 'sending' | 'sent' | 'failed' | 'skipped'; created_at: string }[]
   application_status_history: { id: number; from_status: string | null; to_status: string; note: string | null; created_at: string; profiles: { first_name: string | null; surname: string | null; role: string } | null }[]
 }
 
@@ -129,6 +130,8 @@ export async function getApplicationDetail(supabase: SupabaseClient, id: string)
   if (error) console.error('[admin] getApplicationDetail', error.message)
   if (!data) return null
   const app = data as unknown as ApplicationDetail
+  const { data: emails } = await supabase.from('email_log').select('id, kind, subject, status, created_at').eq('application_id', id).order('created_at', { ascending: false }).limit(20)
+  app.emails = (emails ?? []) as ApplicationDetail['emails']
   // Short-lived private links so staff can open each file.
   const paths = app.documents.map((d) => d.storage_path)
   const links: Record<string, string> = {}

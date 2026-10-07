@@ -3,6 +3,9 @@
 import { randomUUID } from 'node:crypto'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { after } from 'next/server'
+import { notifyApplication } from '@/lib/email/notify'
+import { siteUrl } from '@/lib/site-url'
 import { createClient } from '@/lib/supabase/server'
 import { DOC_RULES, LAST_STEP, STEPS, ageOn, formatBytes, requiredDocs, schemas, sniffMime, type DocType, type StepData, type StepKey } from './steps'
 import { getMyApplication } from './queries'
@@ -56,7 +59,9 @@ export async function saveProgrammeStep(_: StepState, fd: FormData): Promise<Ste
     return { errors: { cohort_id: 'Applications for this intake have closed.' }, values: formValues(fd) }
   }
 
-  const existing = await getMyApplication(supabase, user.id)
+  const latest = await getMyApplication(supabase, user.id)
+  // A closed application (declined, withdrawn, lapsed) means this is a fresh application.
+  const existing = latest && ['declined', 'withdrawn', 'offer_expired'].includes(latest.status) ? null : latest
   if (existing && existing.status !== 'draft') redirect('/portal/apply')
 
   if (existing) {
@@ -74,7 +79,11 @@ export async function saveProgrammeStep(_: StepState, fd: FormData): Promise<Ste
       cohort_id: cohort.id,
       step_data: { programme: parsed.data, completed: [1] },
     })
-    if (error) return { message: 'We couldn’t start your application. Please try again.', values: formValues(fd) }
+    if (error) {
+      if (error.code === '23505') return { errors: { cohort_id: 'You have already applied for this intake. Choose a later one.' }, values: formValues(fd) }
+      if (error.message.includes('in progress')) redirect('/portal/apply')
+      return { message: 'We couldn’t start your application. Please try again.', values: formValues(fd) }
+    }
   }
   revalidatePath('/portal', 'layout')
   const intent = String(fd.get('intent') ?? 'next')
@@ -154,6 +163,8 @@ export async function saveStep(_: StepState, fd: FormData): Promise<StepState> {
   if (key === 'review') {
     const { error: submitError } = await supabase.rpc('applicant_submit', { p_application: app.id })
     if (submitError) return { message: 'We couldn’t submit your application. Please try again.' }
+    const baseUrl = await siteUrl()
+    after(() => notifyApplication({ baseUrl }, app.id, 'submitted'))
     revalidatePath('/portal', 'layout')
     redirect('/portal/apply?submitted=1')
   }
@@ -235,4 +246,12 @@ export async function finishDocuments(_: StepState, fd: FormData): Promise<StepS
   }
   revalidatePath('/portal', 'layout')
   redirect(nextUrl(6, intent))
+}
+
+/** Closes a lapsed offer so the applicant can apply for a later intake. */
+export async function applyAgain() {
+  const { supabase } = await requireUser()
+  await supabase.rpc('applicant_close_lapsed_offer')
+  revalidatePath('/portal', 'layout')
+  redirect('/portal/apply?step=1&again=1')
 }

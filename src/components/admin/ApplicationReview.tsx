@@ -132,6 +132,24 @@ export function ApplicationReview({ app, docs, decision, photoUrl }: { app: Appl
                 </li>
               </ol>
             </section>
+            {app.emails && app.emails.length > 0 && (
+              <section aria-labelledby="emails-h" className="mt-6 rounded-card border border-line bg-white p-5 shadow-card lg:mt-0">
+                <h2 id="emails-h" className="text-h3 font-semibold text-navy">Emails to applicant</h2>
+                <ul className="mt-3 divide-y divide-line">
+                  {app.emails.map((e) => (
+                    <li key={e.id} className="py-2.5">
+                      <p className="text-base font-medium text-ink">{e.subject}</p>
+                      <p className="text-sm text-ink-muted">
+                        {formatDateTime(e.created_at)} ·{' '}
+                        <span className={e.status === 'sent' ? 'text-success' : e.status === 'failed' ? 'text-crimson' : 'text-amber'}>
+                          {e.status === 'sent' ? 'Sent' : e.status === 'failed' ? 'Failed to send' : e.status === 'skipped' ? 'Not sent (email not set up)' : 'Sending'}
+                        </span>
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
           </div>
         </aside>
       </div>

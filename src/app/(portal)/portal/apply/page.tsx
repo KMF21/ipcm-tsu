@@ -13,6 +13,7 @@ import { ApplicationStatus } from '@/components/apply/ApplicationStatus'
 
 export const metadata = { title: 'Apply' }
 
+const CLOSED = ['declined', 'withdrawn', 'offer_expired']
 const ALL_DOCS: DocType[] = ['passport_photo', 'qualification', 'identification', 'cv', 'sponsorship_letter']
 
 export default async function ApplyPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
@@ -21,8 +22,11 @@ export default async function ApplyPage({ searchParams }: { searchParams: Promis
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login?next=/portal/apply')
 
-  const app = await getMyApplication(supabase, user.id)
-  if (app && app.status !== 'draft') return <ApplicationStatus app={app} />
+  const latest = await getMyApplication(supabase, user.id)
+  // After a decline, withdrawal or lapsed offer the applicant may start again for a later intake.
+  const closed = !!latest && CLOSED.includes(latest.status)
+  if (latest && latest.status !== 'draft' && !(closed && sp.again)) return <ApplicationStatus app={latest} />
+  const app = closed ? null : latest
 
   const data = (app?.step_data ?? {}) as StepData
   const paid = !!app?.application_fee_paid_at

@@ -18,7 +18,7 @@ export const site = {
   hours: { value: 'Monday to Friday, 8:00am to 4:00pm; Saturdays during cohorts', placeholder: true },
   tsuUrl: 'https://www.tsuniversity.edu.ng',
   socials: [] as { label: string; href: string }[], // hidden until filled
-  director: { name: 'Director, IPCM', placeholder: true },
+  director: { name: 'Dr. John Doe', title: 'Director, Institute of Peace and Conflict Management', placeholder: true }, // sample until the real name is confirmed
   nextIntake: {
     label: 'February 2027 cohort',
     startDate: '2027-02-06',

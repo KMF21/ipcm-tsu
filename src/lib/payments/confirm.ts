@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import type { PaystackTransaction } from './paystack'
 
 export type ConfirmOutcome =
-  | { kind: 'paid'; feeType: 'application' | 'tuition'; receiptNo: string; regNo?: string | null }
+  | { kind: 'paid'; feeType: 'application' | 'tuition'; receiptNo: string; regNo?: string | null; fresh: boolean }
   | { kind: 'pending' }
   | { kind: 'failed'; reason: string }
 
@@ -19,8 +19,8 @@ export async function recordTransaction(tx: PaystackTransaction): Promise<Confir
       console.error('[payments] confirm_payment failed', tx.reference, error.message)
       return { kind: 'failed', reason: error.message.includes('Amount mismatch') ? 'amount' : 'error' }
     }
-    const r = data as { fee_type: 'application' | 'tuition'; receipt_no: string; reg_no?: string | null }
-    return { kind: 'paid', feeType: r.fee_type, receiptNo: r.receipt_no, regNo: r.reg_no }
+    const r = data as { fee_type: 'application' | 'tuition'; receipt_no: string; reg_no?: string | null; already_processed: boolean }
+    return { kind: 'paid', feeType: r.fee_type, receiptNo: r.receipt_no, regNo: r.reg_no, fresh: !r.already_processed }
   }
   if (tx.status === 'failed' || tx.status === 'abandoned' || tx.status === 'reversed') {
     await admin.rpc('mark_payment_failed', { p_reference: tx.reference, p_status: tx.status === 'abandoned' ? 'abandoned' : 'failed', p_payload: tx as unknown as Record<string, unknown> })

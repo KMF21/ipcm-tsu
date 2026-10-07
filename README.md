@@ -129,6 +129,30 @@ seat is free again; staff can extend or withdraw it. A payment Paystack confirms
 All decisions are recorded in the timeline and audit log. Design preview: `/styleguide/admin?view=dashboard`
 (`list`, `review`, `offer`, `lapsed`, `intakes`, `fees`, `payments`, `help`; add `&role=bursary` etc.).
 
+## Admission letters
+
+Issued automatically when tuition is paid: `/portal/admission-letter/<application id>` (student) and
+`/admin/applications/<id>/letter` (staff). A4 PDF with a QR code to `/verify/letter/<token>` (random token).
+Director name and title come from `src/lib/site.ts` (`site.director`, currently a sample placeholder).
+
+## Email (Resend)
+
+Emails go to applicants when: the application fee is paid (receipt attached), the application is submitted,
+documents are rejected, an offer is made, 7 and 2 days before an offer ends, an offer is extended or lapses,
+the application is declined, and tuition is paid (admission letter and receipt attached). Every email is
+recorded in `email_log` and shown on the staff review screen. Preview: `/styleguide/emails`.
+
+Setup (one time):
+1. Create an account at resend.com → **Domains → Add domain** → `ipcm.tsucpgs.com.ng`.
+2. Resend shows 3–4 DNS records (MX and TXT for sending, a DKIM TXT, optionally DMARC). Add each one exactly
+   as shown in the DNS settings for `tsucpgs.com.ng`, then click **Verify** in Resend (can take up to an hour).
+3. Resend → **API Keys → Create** (sending access). In Vercel add:
+   `RESEND_API_KEY`, `EMAIL_FROM="IPCM Admissions <admissions@ipcm.tsucpgs.com.ng>"`,
+   `EMAIL_REPLY_TO` (an inbox someone reads), `CRON_SECRET` (any long random string). Redeploy.
+4. Reminders run daily at 09:00 Nigerian time (`vercel.json` → `/api/cron/offer-reminders`).
+
+Until the key is set, emails are skipped and logged as "Not sent (email not set up)"; everything else works.
+
 ## Test accounts (development and staging only)
 
 Run `supabase/test-users.sql` in the Supabase SQL editor. It creates one confirmed account per role

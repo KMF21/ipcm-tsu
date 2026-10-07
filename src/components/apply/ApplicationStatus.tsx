@@ -1,5 +1,6 @@
-import { Clock, FileCheck2 } from 'lucide-react'
-import { Alert, Badge, ButtonLink, Card, Stepper } from '@/components/ui'
+import { Clock, Download, FileCheck2, RotateCcw } from 'lucide-react'
+import { applyAgain } from '@/lib/application/actions'
+import { Alert, Badge, ButtonLink, Card, Stepper, buttonClass } from '@/components/ui'
 import type { MyApplication } from '@/lib/application/queries'
 import { formatDate } from '@/lib/utils'
 import { daysUntil, isLapsed, lastPayDay } from '@/lib/admin/status'
@@ -16,7 +17,7 @@ const copy: Record<string, { title: string; body: string; tone: 'info' | 'succes
   admitted: { title: 'You’re admitted', body: 'Welcome to IPCM. Your registration number is in your portal.', tone: 'success' },
   declined: { title: 'Application not successful', body: 'Thank you for applying. Unfortunately we could not offer you a place in this intake. You are welcome to apply again.', tone: 'error' },
   offer_expired: { title: 'Offer expired', body: 'Your offer was not accepted in time. Contact the admissions office if you still wish to join.', tone: 'error' },
-  withdrawn: { title: 'Application withdrawn', body: 'This application was withdrawn.', tone: 'info' },
+  withdrawn: { title: 'Application closed', body: 'This application was closed by the admissions office. Contact them if you have questions.', tone: 'info' },
 }
 
 export function ApplicationStatus({ app }: { app: MyApplication }) {
@@ -42,6 +43,19 @@ export function ApplicationStatus({ app }: { app: MyApplication }) {
         <Alert tone={c.tone} title={c.title}>{c.body}</Alert>
         {app.status === 'changes_requested' && <ButtonLink href="/portal/apply/documents" size="lg">Fix my documents</ButtonLink>}
         {app.status === 'offered' && !lapsed && <ButtonLink href="/portal/apply/pay" size="lg">Pay tuition</ButtonLink>}
+        {app.status === 'admitted' && (
+          <a href={`/portal/admission-letter/${app.id}`} download className={buttonClass('primary', 'lg')}>
+            <Download className="h-5 w-5" aria-hidden /> Download admission letter
+          </a>
+        )}
+        {(lapsed || ['declined', 'withdrawn', 'offer_expired'].includes(app.status)) && (
+          <form action={applyAgain} className="space-y-2">
+            <button type="submit" className={buttonClass('primary', 'lg', 'w-full sm:w-auto')}>
+              <RotateCcw className="h-5 w-5" aria-hidden /> Apply for a later intake
+            </button>
+            <p className="text-sm text-ink-muted">This starts a new application. The application fee is paid again and documents are uploaded again; your personal details are filled in for you.</p>
+          </form>
+        )}
         <ButtonLink href="/portal/payments" variant="secondary" size="lg">View my receipts</ButtonLink>
         <div className="flex items-start gap-3 rounded-card bg-canvas p-4 text-base text-ink">
           {app.status === 'submitted' || app.status === 'under_review' ? <Clock className="mt-0.5 h-5 w-5 shrink-0 text-teal" aria-hidden /> : <FileCheck2 className="mt-0.5 h-5 w-5 shrink-0 text-teal" aria-hidden />}

@@ -170,5 +170,39 @@ await as(b.uid)
 await expectErr('applicants cannot see the dashboard', `select public.staff_dashboard()`, [], /Staff only/)
 await as(null)
 
+// ---- Admission letters, verification, apply again ----
+await db.exec(`grant execute on function public.receipt_json(uuid) to service_role`)
+await as(u.id)
+const appU = (await one(`select id from public.applications where user_id=$1 and status='admitted'`, [u.id]))[0].id
+const letter = (await one(`select public.get_admission_letter($1) r`, [appU]))[0].r
+check('student can load admission letter', letter?.reg_no === 'TSU/IPCM/NMA/2027/0001' && /^[0-9a-f]{32}$/.test(letter.letter_token), letter?.reg_no)
+await as(b.uid)
+check('others cannot load the letter', (await one(`select public.get_admission_letter($1) r`, [appU]))[0].r === null)
+await as(null)
+const vl = (await one(`select public.verify_letter($1) r`, [letter.letter_token]))[0].r
+check('letter QR shows valid admission', vl?.valid === true && vl.reg_no === letter.reg_no && !('email' in vl), JSON.stringify(vl)?.slice(0, 70))
+check('unknown letter token not valid', (await one(`select public.verify_letter('ffffffffffffffffffffffffffffffff') r`))[0].r === null)
+await as(b.uid)
+await one(`set role authenticated`)
+try { await expectErr('applicants cannot call receipt_json', `select public.receipt_json($1)`, [p1.id], /permission denied/) } finally { await one(`reset role`) }
+await as(null)
+// Apply again: b's offer was withdrawn, so a new application for another intake is allowed
+const [c2] = await one(`insert into public.cohorts (programme_id, name, start_date, end_date, application_deadline, status) values ($1,'June 2027 cohort','2027-06-05','2027-07-24','2027-05-30','open') returning id`, [c.prog])
+await as(b.uid)
+await one(`set role authenticated`)
+try {
+  await one(`insert into public.applications (user_id, programme_id, cohort_id) values ($1,$2,$3)`, [b.uid, c.prog, c2.id])
+  check('can apply again after a closed application', true)
+  await expectErr('only one open application at a time', `insert into public.applications (user_id, programme_id, cohort_id) values ($1,$2,$3)`, [d.uid, c.prog, c2.id], /in progress|row-level security/)
+} catch (e) { check('can apply again after a closed application', false, e.message) } finally { await one(`reset role`) }
+// Lapsed offer -> closed by the applicant
+await as(null)
+const l = await newApplicant('lami@example.com')
+await one(`update public.applications set status='offered', application_fee_paid_at=now(), offer_expires_at=now() - interval '1 day' where id=$1`, [l.app])
+await as(l.uid)
+await one(`select public.applicant_close_lapsed_offer()`)
+check('lapsed offer closed when applying again', (await one(`select status from public.applications where id=$1`, [l.app]))[0].status === 'offer_expired')
+await as(null)
+
 await db.close()
 if (failures) { console.log(`${failures} check(s) failed`); process.exit(1) } else console.log('All database checks passed')

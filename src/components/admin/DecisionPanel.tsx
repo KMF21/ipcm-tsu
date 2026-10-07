@@ -176,6 +176,7 @@ export function DecisionPanel({ info }: { info: DecisionInfo }) {
       {info.status === 'admitted' && (
         <div className="mt-4">
           <Alert tone="success" title="Admitted">Tuition paid.{info.regNo ? ` Registration number ${info.regNo}.` : ''}</Alert>
+          <a href={`/admin/applications/${info.id}/letter`} download className="mt-3 inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full border border-navy/25 bg-white px-5 font-semibold text-navy hover:bg-navy hover:text-white">Download admission letter</a>
         </div>
       )}
 

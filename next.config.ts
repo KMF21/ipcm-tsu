@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     '/portal/payments/[id]/pdf': ['./src/assets/**/*'],
     '/admin/payments/[id]/pdf': ['./src/assets/**/*'],
+    '/portal/admission-letter/[id]': ['./src/assets/**/*'],
+    '/admin/applications/[id]/letter': ['./src/assets/**/*'],
+    '/api/paystack/callback': ['./src/assets/**/*'],
+    '/api/paystack/webhook': ['./src/assets/**/*'],
   },
   images: {
     formats: ['image/avif', 'image/webp'],
