@@ -7,6 +7,8 @@ import { getMyApplication } from '@/lib/application/queries'
 import { DOC_RULES } from '@/lib/application/steps'
 import { FORMAT } from '@/lib/programmes'
 import { formatDate, formatNaira } from '@/lib/utils'
+import { daysUntil, isLapsed, lastPayDay } from '@/lib/admin/status'
+import { site } from '@/lib/site'
 
 export const metadata = { title: 'Payment' }
 
@@ -22,6 +24,8 @@ export default async function PayPage({ searchParams }: { searchParams: Promise<
   const isTuition = app.status === 'offered'
   if (isApplicationFee && app.application_fee_paid_at) redirect('/portal/apply?step=2')
   if (!isApplicationFee && !isTuition) redirect('/portal/apply')
+  const lapsed = isTuition && isLapsed(app.status, app.offer_expires_at)
+  const left = isTuition && app.offer_expires_at ? daysUntil(app.offer_expires_at) : null
 
   const { data: fee } = await supabase
     .from('fee_items')
@@ -56,6 +60,16 @@ export default async function PayPage({ searchParams }: { searchParams: Promise<
         {sp.pending && <Alert tone="info" title="We’re confirming your payment">This usually takes under a minute. Refresh this page shortly. If money left your account, it will be confirmed automatically; you won’t be charged twice.</Alert>}
         {sp.failed && <Alert tone="error" title="The payment didn’t go through">No money was taken, or it will be reversed by your bank. You can try again below.</Alert>}
         {sp.cancelled && <Alert tone="warning" title="Payment cancelled">You can pay whenever you’re ready.</Alert>}
+        {isTuition && app.offer_expires_at && !lapsed && (
+          <Alert tone={left !== null && left <= 7 ? 'warning' : 'info'} title={`Pay by ${lastPayDay(app.offer_expires_at)}`}>
+            {left === 0 ? 'Today is the last day to pay.' : `${left} day${left === 1 ? '' : 's'} left.`} After that date your offer lapses and the seat may go to someone else.
+          </Alert>
+        )}
+        {lapsed && app.offer_expires_at && (
+          <Alert tone="error" title="Your offer has expired">
+            Tuition wasn’t paid by {lastPayDay(app.offer_expires_at)}. If you still want to join, contact the admissions office at {site.admissionsEmail.value}. They may be able to extend your offer.
+          </Alert>
+        )}
       </div>
 
       {isApplicationFee && (
@@ -100,7 +114,11 @@ export default async function PayPage({ searchParams }: { searchParams: Promise<
           <li className="rounded-xl bg-canvas p-3"><Smartphone className="mx-auto mb-1 h-5 w-5 text-teal" aria-hidden />USSD</li>
         </ul>
         <div className="mt-6 space-y-3">
-          <PayButton feeType={isApplicationFee ? 'application' : 'tuition'} label={`Pay ${formatNaira(total)}`} />
+          {lapsed ? (
+            <ButtonLink href="/portal/apply" variant="secondary" size="lg" className="w-full">Back to my application</ButtonLink>
+          ) : (
+            <PayButton feeType={isApplicationFee ? 'application' : 'tuition'} label={`Pay ${formatNaira(total)}`} />
+          )}
           {isApplicationFee && <ButtonLink href="/portal/apply?step=1" variant="ghost" size="lg" className="w-full">Change programme or intake</ButtonLink>}
         </div>
       </Card>

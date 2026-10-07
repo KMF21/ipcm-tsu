@@ -98,5 +98,77 @@ check('QR verify hides email and reference', v && !('payer_email' in v) && !('re
 check('unknown token is not valid', (await one(`select public.verify_receipt('0123456789abcdef0123456789abcdef') r`))[0].r === null)
 check('receipt number cannot be used as token', (await one(`select public.verify_receipt($1) r`, [r1.receipt_no]))[0].r === null)
 
+// ---- Admin review: staff decisions, offers, expiry ----
+await as(null)
+await db.exec(`grant usage on schema public to authenticated; grant select, insert, update, delete on all tables in schema public to authenticated;`)
+const newApplicant = async (email) => {
+  const [x] = await one(`insert into auth.users (email, raw_user_meta_data) values ($1,'{"first_name":"Test","surname":"Applicant"}') returning id`, [email])
+  const [app] = await one(`insert into public.applications (user_id, programme_id, cohort_id) values ($1,$2,$3) returning id`, [x.id, c.prog, c.cohort])
+  return { uid: x.id, app: app.id }
+}
+const b = await newApplicant('bola@example.com')
+await as(b.uid); const [{ r: pb }] = await one(`select public.create_payment('application') r`); await as(null)
+await one(`select public.confirm_payment($1, 1530000, '{}'::jsonb)`, [pb.reference])
+await as(b.uid); await one(`select public.applicant_submit($1)`, [b.app]); await as(null)
+const [doc1] = await one(`insert into public.documents (application_id, user_id, type, storage_path, mime, size_bytes) values ($1,$2,'passport_photo','x/a.jpg','image/jpeg',1000) returning id`, [b.app, b.uid])
+const [doc2] = await one(`insert into public.documents (application_id, user_id, type, storage_path, mime, size_bytes) values ($1,$2,'qualification','x/b.pdf','application/pdf',1000) returning id`, [b.app, b.uid])
+const [staff] = await one(`insert into auth.users (email) values ('officer@example.com') returning id`)
+await one(`update public.profiles set role='admissions' where id=$1`, [staff.id])
+const expectErr = async (label, sql, params, re) => {
+  try { await one(sql, params); check(label, false, 'no error') } catch (e) { check(label, re.test(e.message), e.message.slice(0, 70)) }
+}
+await as(b.uid)
+await expectErr('applicant cannot make an offer', `select public.staff_make_offer($1)`, [b.app], /Only admissions staff/)
+await as(staff.id)
+await expectErr('offer needs every document approved', `select public.staff_make_offer($1)`, [b.app], /Approve every document/)
+check('failed offer changes nothing', (await one(`select status from public.applications where id=$1`, [b.app]))[0].status === 'submitted')
+await one(`select public.staff_start_review($1)`, [b.app])
+check('staff start the review', (await one(`select status from public.applications where id=$1`, [b.app]))[0].status === 'under_review')
+await expectErr('rejection needs a reason', `select public.staff_review_document($1, false, '')`, [doc1.id], /reason/)
+await one(`select public.staff_review_document($1, false, 'Photo is blurred. Upload a clear one.')`, [doc1.id])
+await one(`select public.staff_review_document($1, true)`, [doc2.id])
+await one(`select public.staff_request_changes($1, 'Please replace your photo')`, [b.app])
+check('changes requested after rejection', (await one(`select status from public.applications where id=$1`, [b.app]))[0].status === 'changes_requested')
+await one(`select public.staff_review_document($1, true)`, [doc1.id]) // stands in for the applicant replacing it
+await as(b.uid); await one(`select public.applicant_resubmit($1)`, [b.app]); await as(staff.id)
+await one(`update public.cohorts set capacity = 1 where id=$1`, [c.cohort]) // the earlier applicant is admitted
+await expectErr('full intake blocks offers', `select public.staff_make_offer($1)`, [b.app], /intake is full/)
+await one(`update public.cohorts set capacity = 40 where id=$1`, [c.cohort])
+await one(`select public.staff_make_offer($1)`, [b.app])
+const off = (await one(`select status, extract(day from offer_expires_at - now())::int d from public.applications where id=$1`, [b.app]))[0]
+check('offer is valid for 30 days by default', off.status === 'offered' && off.d >= 30 && off.d <= 31, JSON.stringify(off))
+await expectErr('cannot extend into the past', `select public.staff_extend_offer($1, current_date - 2)`, [b.app], /today or a later date/)
+await one(`select public.staff_extend_offer($1, current_date + 45)`, [b.app])
+check('offer extended', (await one(`select extract(day from offer_expires_at - now())::int d from public.applications where id=$1`, [b.app]))[0].d >= 45)
+await as(null); await one(`update public.applications set offer_expires_at = now() - interval '1 day' where id=$1`, [b.app])
+await as(b.uid)
+await expectErr('expired offer cannot be paid', `select public.create_payment('tuition')`, [], /expired/)
+await as(staff.id)
+await expectErr('withdrawal needs a reason', `select public.staff_withdraw_offer($1, ' ')`, [b.app], /reason/)
+await one(`select public.staff_withdraw_offer($1, 'Did not pay before the deadline')`, [b.app])
+check('offer withdrawn', (await one(`select status from public.applications where id=$1`, [b.app]))[0].status === 'withdrawn')
+check('timeline records each step', Number((await one(`select count(*) n from public.application_status_history where application_id=$1`, [b.app]))[0].n) >= 7)
+// Applicants can edit their draft but never mark it paid
+const d = await newApplicant('dayo@example.com')
+await as(d.uid)
+await one(`set role authenticated`)
+try {
+  await one(`update public.applications set step_data='{"x":1}' where id=$1`, [d.app]); check('applicant can still edit own draft', true)
+  await expectErr('applicant cannot mark own fee paid', `update public.applications set application_fee_paid_at=now() where id=$1`, [d.app], /only be changed by the Institute/)
+} catch (e) { check('applicant can still edit own draft', false, e.message) } finally { await one(`reset role`) }
+await as(null)
+
+await as(staff.id)
+const dash = (await one(`select public.staff_dashboard() r`))[0].r
+check('dashboard counts applications', dash.admitted === 1 && !('received_kobo' in dash), JSON.stringify(dash).slice(0, 90))
+await as(null); await one(`update public.profiles set role='bursary' where id=$1`, [staff.id]); await as(staff.id)
+const dash2 = (await one(`select public.staff_dashboard() r`))[0].r
+check('bursary sees money received', dash2.received_kobo === 1530000 * 2 + 3530000, String(dash2.received_kobo))
+const seats = (await one(`select * from public.staff_intake_seats() where cohort_id=$1`, [c.cohort]))[0]
+check('intake seats counted', seats.admitted === 1 && seats.seats_taken === 1, JSON.stringify(seats))
+await as(b.uid)
+await expectErr('applicants cannot see the dashboard', `select public.staff_dashboard()`, [], /Staff only/)
+await as(null)
+
 await db.close()
 if (failures) { console.log(`${failures} check(s) failed`); process.exit(1) } else console.log('All database checks passed')

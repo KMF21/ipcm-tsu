@@ -112,6 +112,23 @@ receipt is genuine. The token is random (32 hex characters); sequential receipt 
 The verify page shows no email, phone or payment reference. Set `NEXT_PUBLIC_SITE_URL` in Vercel to the final
 domain so QR codes point to it. Design preview: `/styleguide/receipt` (`?v=valid`, `?v=invalid`).
 
+## Admin portal (`/admin`)
+
+| Area | Who | What |
+|---|---|---|
+| Dashboard | All staff | Counts to review, waiting, offers, admitted; money received (Bursary, Director, Super admin) |
+| Applications | Admissions, Director, Super admin | Review documents (approve / reject with reason), ask for changes, make offer, decline, extend or withdraw an offer |
+| Payments | Bursary, Director, Super admin | All Paystack payments, receipts and PDFs |
+| Intakes | View: Admissions, Bursary. Edit: Director, Super admin | Dates, seats, status, days to pay |
+| Fees | Bursary, Director, Super admin | Application fee and tuition per programme |
+| Applicant help | Admissions, Director, Super admin | Correct an applicant's email, give a new password (applicant and student accounts only) |
+
+Offers: valid 30 days by default (set per intake, 1–60 days). An offer needs every document approved and a free
+seat (seats taken = admitted + offers not yet lapsed). After the last day the applicant can no longer pay and the
+seat is free again; staff can extend or withdraw it. A payment Paystack confirms after the deadline still admits.
+All decisions are recorded in the timeline and audit log. Design preview: `/styleguide/admin?view=dashboard`
+(`list`, `review`, `offer`, `lapsed`, `intakes`, `fees`, `payments`, `help`; add `&role=bursary` etc.).
+
 ## Test accounts (development and staging only)
 
 Run `supabase/test-users.sql` in the Supabase SQL editor. It creates one confirmed account per role

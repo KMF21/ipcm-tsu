@@ -1,34 +1,31 @@
-import { redirect } from 'next/navigation'
-import { LogOut } from 'lucide-react'
-import { Button, ButtonLink, EmptyState } from '@/components/ui'
-import { signOut } from '@/lib/auth/actions'
-import { isStaff } from '@/lib/auth/paths'
-import { createClient } from '@/lib/supabase/server'
+import { AdminDashboard } from '@/components/admin/Dashboard'
+import { getDashboard, listApplications, listPayments, type ApplicationRow } from '@/lib/admin/queries'
+import { can } from '@/lib/admin/roles'
+import { getStaff } from '@/lib/admin/session'
 
-export const metadata = { title: 'Admin', robots: { index: false, follow: false } }
+export const metadata = { title: 'Dashboard' }
 
-export default async function AdminHome() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login?next=/admin')
-  const { data: profile } = await supabase.from('profiles').select('first_name, role').eq('id', user.id).single()
-  if (!isStaff(profile?.role)) redirect('/portal')
-  return (
-    <main id="main" className="container-page py-16">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-[1.875rem] font-bold leading-[2.375rem] sm:text-h1">Welcome, {profile?.first_name ?? 'admin'}</h1>
-          <p className="mt-2 text-lead text-ink-muted">Signed in as {String(profile?.role).replace('_', ' ')}.</p>
-        </div>
-        <form action={signOut}>
-          <Button type="submit" variant="secondary" size="lg" className="w-full sm:w-auto">
-            <LogOut className="h-5 w-5" aria-hidden /> Sign out
-          </Button>
-        </form>
-      </div>
-      <div className="mt-10">
-        <EmptyState illustration title="The admin portal is on the way" body="Application review, offers, cohorts and fees arrive later in Phase 1." action={<ButtonLink href="/">View the website</ButtonLink>} />
-      </div>
-    </main>
-  )
+export default async function AdminHome({ searchParams }: { searchParams: Promise<{ denied?: string }> }) {
+  const sp = await searchParams
+  const { supabase, staff } = await getStaff()
+  const review = can.review(staff.role)
+  const money = can.money(staff.role)
+  const soon = new Date(Date.now() + 7 * 86_400_000).toISOString()
+  const [figures, waiting, lapsing, payments] = await Promise.all([
+    getDashboard(supabase),
+    review ? listApplications(supabase, { tab: 'review' }).then((r) => r.rows.slice(0, 5)) : Promise.resolve([]),
+    review
+      ? supabase
+          .from('applications')
+          .select('id, ref, status, submitted_at, created_at, updated_at, offer_expires_at, application_fee_paid_at, programmes(code, short_title), cohorts(name), profiles(first_name, surname, email, phone)')
+          .eq('status', 'offered')
+          .gt('offer_expires_at', new Date().toISOString())
+          .lte('offer_expires_at', soon)
+          .order('offer_expires_at')
+          .limit(5)
+          .then((r) => (r.data ?? []) as unknown as ApplicationRow[])
+      : Promise.resolve([]),
+    money ? listPayments(supabase, {}).then((r) => r.rows.slice(0, 5)) : Promise.resolve([]),
+  ])
+  return <AdminDashboard name={staff.name} role={staff.role} figures={figures} waiting={waiting} lapsing={lapsing} payments={payments} denied={!!sp.denied} />
 }

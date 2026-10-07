@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
   // Receipt PDFs read these files at runtime; make sure they ship with the serverless function.
   outputFileTracingIncludes: {
     '/portal/payments/[id]/pdf': ['./src/assets/**/*'],
+    '/admin/payments/[id]/pdf': ['./src/assets/**/*'],
   },
   images: {
     formats: ['image/avif', 'image/webp'],
