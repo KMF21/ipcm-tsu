@@ -124,9 +124,25 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
                 <Bell className="h-5 w-5" aria-hidden />
                 <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-crimson px-1 text-[0.8125rem] font-bold text-white">2</span>
               </button>
-              <Link href="/portal/profile" className="md:hidden" aria-label="Profile">
-                <Avatar name={user.name} size={44} />
-              </Link>
+              <details className="relative md:hidden">
+                <summary className="list-none rounded-full [&::-webkit-details-marker]:hidden" aria-label="Account menu">
+                  <Avatar name={user.name} size={44} />
+                </summary>
+                <div className="absolute right-0 top-[52px] z-40 w-64 rounded-card border border-line bg-white p-2 shadow-raised">
+                  <div className="border-b border-line px-3 pb-3 pt-2">
+                    <p className="truncate font-semibold text-navy">{user.name}</p>
+                    <p className="break-all text-sm text-ink-muted">{user.regNo}</p>
+                  </div>
+                  <Link href="/portal/profile" className="mt-1 flex min-h-[48px] items-center gap-3 rounded-xl px-3 text-base text-ink hover:bg-canvas">
+                    <UserRound className="h-5 w-5" aria-hidden /> Profile
+                  </Link>
+                  <form action={signOut}>
+                    <button type="submit" className="flex min-h-[48px] w-full items-center gap-3 rounded-xl px-3 text-base font-semibold text-crimson hover:bg-crimson-50">
+                      <LogOut className="h-5 w-5" aria-hidden /> Sign out
+                    </button>
+                  </form>
+                </div>
+              </details>
             </div>
           </div>
         </header>

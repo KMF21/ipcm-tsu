@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation'
-import { ButtonLink, EmptyState } from '@/components/ui'
+import { LogOut } from 'lucide-react'
+import { Button, ButtonLink, EmptyState } from '@/components/ui'
+import { signOut } from '@/lib/auth/actions'
 import { isStaff } from '@/lib/auth/paths'
 import { createClient } from '@/lib/supabase/server'
 
@@ -13,8 +15,17 @@ export default async function AdminHome() {
   if (!isStaff(profile?.role)) redirect('/portal')
   return (
     <main id="main" className="container-page py-16">
-      <h1 className="text-h1 font-bold">Welcome, {profile?.first_name ?? 'admin'}</h1>
-      <p className="mt-2 text-lead text-ink-muted">Signed in as {String(profile?.role).replace('_', ' ')}.</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-[1.875rem] font-bold leading-[2.375rem] sm:text-h1">Welcome, {profile?.first_name ?? 'admin'}</h1>
+          <p className="mt-2 text-lead text-ink-muted">Signed in as {String(profile?.role).replace('_', ' ')}.</p>
+        </div>
+        <form action={signOut}>
+          <Button type="submit" variant="secondary" size="lg" className="w-full sm:w-auto">
+            <LogOut className="h-5 w-5" aria-hidden /> Sign out
+          </Button>
+        </form>
+      </div>
       <div className="mt-10">
         <EmptyState illustration title="The admin portal is on the way" body="Application review, offers, cohorts and fees arrive later in Phase 1." action={<ButtonLink href="/">View the website</ButtonLink>} />
       </div>
