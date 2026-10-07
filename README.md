@@ -57,6 +57,15 @@ In Supabase → **Authentication → URL Configuration**:
 
 In **Authentication → Providers → Email**: keep **Confirm email** on.
 
+In **Authentication → Email Templates**, replace the templates with the files in `supabase/email-templates/`:
+
+- **Confirm signup** → `confirm-signup.html`
+- **Reset password** → `reset-password.html`
+
+These links go to `/auth/confirm` with a token hash. They work in any browser or device, and the
+person must press a button, so email security scanners can't use the link up before they click.
+The **Site URL** above must be the live site address, because the templates build links from it.
+
 Set `NEXT_PUBLIC_SITE_URL` in Vercel to the same production URL, so email links point to the right place.
 
 ### Account flows
@@ -64,7 +73,8 @@ Set `NEXT_PUBLIC_SITE_URL` in Vercel to the same production URL, so email links 
 | Route | Purpose |
 | --- | --- |
 | `/register` | Create account (`?programme=NMA` pre-selects a programme) → `/verify-email` |
-| `/auth/callback` | Handles links in confirmation and reset emails |
+| `/auth/confirm` | Confirms sign-up and reset links (token hash, button press) |
+| `/auth/callback` | Fallback for code-based links |
 | `/login` | Sign in → `/admin` for staff, `/portal` for everyone else (`?next=` respected, same-site only) |
 | `/forgot-password` → `/reset-password` | Password reset |
 

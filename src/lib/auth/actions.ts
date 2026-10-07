@@ -55,7 +55,9 @@ export async function signUp(_: FormState, fd: FormData): Promise<FormState> {
     email,
     password,
     options: {
-      data: { first_name: firstName, surname }, // read by the handle_new_user trigger
+      // first_name/surname are read by the handle_new_user trigger; intended_programme
+      // lets the confirmation link take the applicant straight to the right application.
+      data: { first_name: firstName, surname, intended_programme: (next.match(/programme=([A-Z]{2,5})/) ?? [])[1] ?? null },
       emailRedirectTo: `${await siteUrl()}/auth/callback?next=${encodeURIComponent(next)}`,
     },
   })
@@ -132,4 +134,35 @@ export async function signOut() {
   const supabase = await createClient()
   await supabase.auth.signOut()
   redirect('/login?signedout=1')
+}
+
+/**
+ * Confirms an email link (sign-up or password recovery) using the token hash.
+ * Works in any browser or device, unlike the code flow, and only runs when the
+ * person presses the button — so email security scanners can't use the link up.
+ */
+export async function confirmEmailLink(_: FormState, fd: FormData): Promise<FormState> {
+  const token_hash = String(fd.get('token_hash') ?? '')
+  const rawType = String(fd.get('type') ?? 'email')
+  const type = (['email', 'signup', 'recovery', 'email_change', 'invite'] as const).find((t) => t === rawType) ?? 'email'
+  if (!token_hash) return { message: 'This link is incomplete. Please use the full link from your email.' }
+
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.verifyOtp({ type, token_hash })
+  if (error || !data.user) {
+    return {
+      message:
+        type === 'recovery'
+          ? 'This reset link has expired or was already used. Please request a new one.'
+          : 'This link has expired or was already used. If you already confirmed your email, you can simply log in.',
+    }
+  }
+  if (type === 'recovery') redirect('/reset-password')
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single()
+  const intended = (data.user.user_metadata?.intended_programme as string | undefined) ?? ''
+  if (!profile || profile.role === 'applicant') {
+    redirect(`/portal/apply?welcome=1${/^[A-Z]{2,5}$/.test(intended) ? `&programme=${intended}` : ''}`)
+  }
+  redirect(homeForRole(profile.role))
 }

@@ -13,7 +13,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <div className="mb-6 space-y-3">
         {sp.reset && <Alert tone="success" title="Password updated">Log in with your new password.</Alert>}
         {sp.signedout && <Alert tone="info" title="You’ve been logged out" />}
-        {sp.error === 'link' && <Alert tone="error" title="That link has expired or was already used">Log in below, or request a new link.</Alert>}
+        {sp.error === 'link' && <Alert tone="info" title="That link couldn’t be used">If you already confirmed your email, just log in below. Otherwise, sign up again or request a new link.</Alert>}
       </div>
       <LoginForm next={sp.next} />
       <p className="mt-6 border-t border-line pt-5 text-center text-base text-ink-muted">
