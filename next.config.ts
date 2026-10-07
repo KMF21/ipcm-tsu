@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
     // Document uploads go through Server Actions (largest allowed file is 2 MB).
     serverActions: { bodySizeLimit: '3mb' },
   },
+  // Receipt PDFs read these files at runtime; make sure they ship with the serverless function.
+  outputFileTracingIncludes: {
+    '/portal/payments/[id]/pdf': ['./src/assets/**/*'],
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
   },

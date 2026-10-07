@@ -65,7 +65,7 @@ export default async function ApplyPage({ searchParams }: { searchParams: Promis
     <div className="mx-auto max-w-3xl">
       {sp.paid && (
         <div className="mb-6">
-          <Alert tone="success" title="Payment received. Thank you.">Your application fee is paid. Now complete the rest of your application.</Alert>
+          <Alert tone="success" title="Payment received. Thank you.">Your application fee is paid. Now complete the rest of your application. Your receipt is under <Link href="/portal/payments" className="font-semibold text-teal underline underline-offset-4">Payments</Link>.</Alert>
         </div>
       )}
       {sp.saved && (

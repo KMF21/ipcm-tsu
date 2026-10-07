@@ -32,6 +32,7 @@ export function ApplicationStatus({ app }: { app: MyApplication }) {
         <Alert tone={c.tone} title={c.title}>{c.body}</Alert>
         {app.status === 'changes_requested' && <ButtonLink href="/portal/apply/documents" size="lg">Fix my documents</ButtonLink>}
         {app.status === 'offered' && <ButtonLink href="/portal/apply/pay" size="lg">Pay tuition</ButtonLink>}
+        <ButtonLink href="/portal/payments" variant="secondary" size="lg">View my receipts</ButtonLink>
         <div className="flex items-start gap-3 rounded-card bg-canvas p-4 text-base text-ink">
           {app.status === 'submitted' || app.status === 'under_review' ? <Clock className="mt-0.5 h-5 w-5 shrink-0 text-teal" aria-hidden /> : <FileCheck2 className="mt-0.5 h-5 w-5 shrink-0 text-teal" aria-hidden />}
           <p>Keep your application reference <strong className="text-navy">{app.ref}</strong> for any enquiries.</p>

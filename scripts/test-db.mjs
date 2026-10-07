@@ -78,5 +78,25 @@ try { await one(`update public.profiles set role='super_admin' where id=$1`, [u.
 await db.exec(`reset request.jwt.sub`)
 await one(`update public.profiles set role='super_admin' where id=$1`, [u.id])
 check('SQL editor can grant roles', (await one(`select role from public.profiles where id=$1`, [u.id]))[0].role === 'super_admin')
+// Receipts and QR verification
+const [p1] = await one(`select id, verify_token from public.payments where reference=$1`, [pay1.reference])
+check('payment has unguessable verify token', /^[0-9a-f]{32}$/.test(p1.verify_token))
+await as(u.id)
+const rc = (await one(`select public.get_receipt($1) r`, [p1.id]))[0].r
+check('payer can load own receipt', rc?.receipt_no === r1.receipt_no && rc.amount_kobo === 1530000 && rc.fee_type === 'application', rc?.receipt_no)
+const rcT = (await one(`select public.get_receipt(id) r from public.payments where reference=$1`, [pay3.reference]))[0].r
+check('tuition receipt shows registration number', rcT?.reg_no === 'TSU/IPCM/NMA/2027/0001', rcT?.reg_no)
+const [u2] = await one(`insert into auth.users (email) values ('other@example.com') returning id`)
+await as(u2.id)
+check('other users cannot load the receipt', (await one(`select public.get_receipt($1) r`, [p1.id]))[0].r === null)
+const pending = (await one(`select public.get_receipt(id) r from public.payments where reference=$1`, [pay2.reference]))[0].r
+check('failed payment has no receipt', pending === null)
+await as(null)
+const v = (await one(`select public.verify_receipt($1) r`, [p1.verify_token]))[0].r
+check('QR verify shows valid receipt', v?.valid === true && v.receipt_no === r1.receipt_no && v.payer_name === 'Amina Bello', JSON.stringify(v)?.slice(0, 80))
+check('QR verify hides email and reference', v && !('payer_email' in v) && !('reference' in v))
+check('unknown token is not valid', (await one(`select public.verify_receipt('0123456789abcdef0123456789abcdef') r`))[0].r === null)
+check('receipt number cannot be used as token', (await one(`select public.verify_receipt($1) r`, [r1.receipt_no]))[0].r === null)
+
 await db.close()
 if (failures) { console.log(`${failures} check(s) failed`); process.exit(1) } else console.log('All database checks passed')

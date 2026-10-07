@@ -1,17 +1,11 @@
 'use server'
 
-import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { initializeTransaction } from './paystack'
+import { siteUrl } from '@/lib/site-url'
 
 export type PayState = { message?: string }
-
-async function siteUrl() {
-  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '')
-  const h = await headers()
-  return `${h.get('x-forwarded-proto') ?? 'https'}://${h.get('host')}`
-}
 
 /** Creates the payment record (amount from the database) and sends the applicant to Paystack. */
 export async function startPayment(_: PayState, fd: FormData): Promise<PayState> {

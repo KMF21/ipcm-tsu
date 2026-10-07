@@ -54,7 +54,7 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
   return (
     <div className="min-h-screen bg-canvas">
       {/* Sidebar: full at lg+, icon-only md–lg, hidden on phone */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[88px] flex-col border-r border-line bg-white md:flex lg:w-[272px]" aria-label="Portal navigation">
+      <aside className="print:hidden fixed inset-y-0 left-0 z-30 hidden w-[88px] flex-col border-r border-line bg-white md:flex lg:w-[272px]" aria-label="Portal navigation">
         <Link href="/" className="flex h-20 items-center gap-3 px-6 lg:px-6">
           <Image src={images.logo.src} alt="TSU" width={40} height={40} className="h-10 w-10" />
           <span className="hidden font-display text-lg font-bold text-navy lg:inline">IPCM Portal</span>
@@ -106,9 +106,9 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
         </div>
       </aside>
 
-      <div className="md:pl-[88px] lg:pl-[272px]">
+      <div className="md:pl-[88px] lg:pl-[272px] print:!pl-0">
         {/* Top bar */}
-        <header className="sticky top-0 z-20 border-b border-line bg-white/95 backdrop-blur">
+        <header className="print:hidden sticky top-0 z-20 border-b border-line bg-white/95 backdrop-blur">
           <div className="flex h-16 items-center justify-between gap-4 px-4 sm:h-20 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3 md:hidden">
               <Image src={images.logo.src} alt="TSU" width={36} height={36} className="h-9 w-9" />
@@ -147,11 +147,11 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
           </div>
         </header>
 
-        <main id="main" className="px-4 pb-28 pt-6 sm:px-6 md:pb-12 lg:px-8 lg:pt-8">{children}</main>
+        <main id="main" className="print:p-0 px-4 pb-28 pt-6 sm:px-6 md:pb-12 lg:px-8 lg:pt-8">{children}</main>
       </div>
 
       {/* Bottom tab bar (phone) */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Portal">
+      <nav className="print:hidden fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Portal">
         <ul className="grid grid-cols-5">
           {tabs.map(({ href, label, Icon }) => {
             const active = path === href

@@ -104,6 +104,14 @@ offer → pay tuition → registration number issued automatically.
 Amounts always come from `fee_items`; the browser never sends a price. Callback and webhook both verify with
 Paystack server-to-server, and confirmation is idempotent (a repeated webhook does nothing).
 
+### Receipts
+
+Every successful payment has a receipt at `/portal/payments/<id>` (view, print) and `/portal/payments/<id>/pdf`
+(A4 PDF). Each receipt carries a QR code linking to `/verify/receipt/<token>`, a public page that confirms the
+receipt is genuine. The token is random (32 hex characters); sequential receipt numbers are never used in links.
+The verify page shows no email, phone or payment reference. Set `NEXT_PUBLIC_SITE_URL` in Vercel to the final
+domain so QR codes point to it. Design preview: `/styleguide/receipt` (`?v=valid`, `?v=invalid`).
+
 ## Test accounts (development and staging only)
 
 Run `supabase/test-users.sql` in the Supabase SQL editor. It creates one confirmed account per role
