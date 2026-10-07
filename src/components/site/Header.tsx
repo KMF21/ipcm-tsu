@@ -28,7 +28,6 @@ export function Lockup({ light = false }: { light?: boolean }) {
           Institute of Peace and
           <br /> Conflict Management
         </span>
-        {/* <span className={cn('text-sm font-medium', light ? 'text-white/80' : 'text-ink-muted')}>Taraba State University</span> */}
       </span>
     </Link>
   )

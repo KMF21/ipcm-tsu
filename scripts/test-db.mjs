@@ -48,4 +48,8 @@ console.log('history:', (await one(`select string_agg(to_status::text, ' > ' ord
 // A signed-in user must not be able to promote themselves
 await db.exec(`set request.jwt.sub = '${u.id}'`)
 try { await one(`update public.profiles set role='super_admin' where id=$1`, [u.id]); console.log('SELF-PROMOTION ALLOWED (bad)') } catch (e) { console.log('self-promotion blocked:', e.message) }
+// SQL editor / service role (no end-user JWT) may grant roles
+await db.exec(`reset request.jwt.sub`)
+await one(`update public.profiles set role='super_admin' where id=$1`, [u.id])
+console.log('SQL editor grant:', (await one(`select role from public.profiles where id=$1`, [u.id]))[0].role)
 await db.close()

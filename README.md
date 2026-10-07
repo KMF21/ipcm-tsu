@@ -12,16 +12,16 @@ The full specification is the *IPCM-TSU Platform — Master Build Prompt*; conte
 | Homepage | Done (placeholder content) |
 | Programme pages (all 5) | Done — `/programmes/[slug]` |
 | Student dashboard | Done with demo data — `/portal` |
-| Supabase schema, business logic, RLS, storage, seed | Done and tested (`npm run test:db`) |
+| Supabase schema, business logic, RLS, storage, seed | Done and tested (`pnpm test:db`) |
 | Other pages | "Coming soon" stubs so no link 404s |
 | Auth, applications, Paystack, admin | Phase 1 |
 
 ## Getting started
 
 ```bash
-npm install
+pnpm install
 cp .env.example .env.local   # then fill in the keys
-npm run dev                  # http://localhost:3000
+pnpm dev                  # http://localhost:3000
 ```
 
 Pages to review: `/`, `/programmes/negotiation-mediation-adr`, `/portal`, `/styleguide`.
@@ -51,12 +51,12 @@ update public.profiles set role = 'super_admin' where email = 'you@example.com';
 
 | Command | What it does |
 | --- | --- |
-| `npm run dev` / `build` / `start` | Next.js |
-| `npm run typecheck` | TypeScript, strict |
-| `npm test` | Unit tests (fees, programmes, helpers) |
-| `npm run test:db` | Runs all migrations + seed in embedded Postgres and tests the admissions and payment flow: numbering, idempotent webhook, amount check, illegal transitions, role protection |
-| `npm run seed:generate` | Regenerates `supabase/seed.sql` from `src/lib/programmes.ts` |
-| `npm run placeholders:generate` | Regenerates placeholder images |
+| `pnpm dev` / `build` / `start` | Next.js |
+| `pnpm typecheck` | TypeScript, strict |
+| `pnpm test` | Unit tests (fees, programmes, helpers) |
+| `pnpm test:db` | Runs all migrations + seed in embedded Postgres and tests the admissions and payment flow: numbering, idempotent webhook, amount check, illegal transitions, role protection |
+| `pnpm seed:generate` | Regenerates `supabase/seed.sql` from `src/lib/programmes.ts` |
+| `pnpm placeholders:generate` | Regenerates placeholder images |
 
 ## Key rules (from the build prompt)
 
