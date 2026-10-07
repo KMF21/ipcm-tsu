@@ -206,7 +206,7 @@ export default async function ProgrammePage({ params }: { params: Promise<{ slug
         {/* Sticky apply card (desktop) */}
         <aside className="hidden lg:block">
           <div className="sticky top-28 rounded-card border border-line bg-white p-6 shadow-raised">
-            <p className="text-sm font-semibold uppercase tracking-wide text-teal">Next intake<PlaceholderTag show={intake.placeholder} /></p>
+            <p className="text-sm font-semibold uppercase tracking-wide text-teal">Next intake</p>
             <p className="mt-1 font-display text-h3 font-semibold text-navy">{intake.label}</p>
             <dl className="mt-5 space-y-3 border-y border-line py-5 text-base">
               <div className="flex justify-between"><dt className="text-ink-muted">Starts</dt><dd className="font-semibold text-navy">{formatDate(intake.startDate)}</dd></div>

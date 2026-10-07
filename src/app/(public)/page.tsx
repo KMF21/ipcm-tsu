@@ -89,7 +89,7 @@ export default function HomePage() {
           <div className="flex flex-wrap items-center gap-x-8 gap-y-2">
             <p className="font-display text-lg font-semibold">
               Next intake: {intake.label}
-              <PlaceholderTag show={intake.placeholder} />
+              
             </p>
             <p className="text-base text-white/85">Apply by {formatDate(intake.deadline)}</p>
             <p className="text-base text-white/85">{intake.seatsLeft} seats per programme</p>
