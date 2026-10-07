@@ -22,7 +22,7 @@ export const images = {
     PCM: ph('programme-pcm.png', 'Peace and conflict management class in session', 1200, 900),
     NMA: ph('programme-nma.png', 'Mediation practice session', 1200, 900),
     CEW: ph('programme-cew.png', 'Conflict mapping workshop', 1200, 900),
-    PHR: ph('programme-phr.png', 'Community recovery meeting', 1200, 900),
+    PHR: ph('programme-phr.jpg', 'Community recovery meeting', 1200, 900),
     PSS: ph('programme-pss.png', 'Security and community leaders in dialogue', 1200, 900),
   } as Record<string, SiteImage>,
   programmeHeroes: {
