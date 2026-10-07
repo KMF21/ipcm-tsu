@@ -14,6 +14,8 @@ export type OutgoingEmail = {
   /** Same key twice = second one is skipped (used for reminders and payment emails). */
   dedupeKey?: string
   attachments?: EmailAttachment[]
+  /** Where replies go; defaults to EMAIL_REPLY_TO. */
+  replyTo?: string
 }
 
 export type SendResult = { status: 'sent' | 'failed' | 'skipped' | 'duplicate'; error?: string }
@@ -51,7 +53,7 @@ export async function sendEmail(m: OutgoingEmail): Promise<SendResult> {
       body: JSON.stringify({
         from,
         to: [m.to],
-        reply_to: process.env.EMAIL_REPLY_TO || undefined,
+        reply_to: m.replyTo || process.env.EMAIL_REPLY_TO || undefined,
         subject: m.subject,
         html: m.html,
         text: m.text,

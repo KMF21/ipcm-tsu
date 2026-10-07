@@ -208,3 +208,33 @@ export function admitted(ctx: EmailContext, d: { firstName: string; regNo: strin
     signoff: 'With best wishes,<br>Admissions Office',
   }) }
 }
+
+export function contactReceived(ctx: EmailContext, d: { name: string; topic: string }): Email {
+  return { subject: 'We have your message', ...render(ctx, {
+    preheader: 'Thank you for contacting the Institute. We reply within two working days.',
+    heading: 'Thank you for getting in touch',
+    greeting: `Dear ${d.name},`,
+    blocks: [
+      { p: `We have received your message about <strong>${esc(d.topic.toLowerCase())}</strong>. A member of our team will reply within two working days.` },
+      { p: 'If your question is about applying, the admissions guide and FAQs may answer it sooner.' },
+      { button: { label: 'Read the FAQs', url: `${ctx.baseUrl}/faq` } },
+    ],
+    signoff: 'Institute of Peace and Conflict Management',
+  }) }
+}
+
+export function contactToStaff(ctx: EmailContext, d: { name: string; email: string; phone?: string | null; topic: string; message: string }): Email {
+  const rows: [string, string][] = [['From', d.name], ['Email', d.email], ['Topic', d.topic]]
+  if (d.phone) rows.push(['Phone', d.phone])
+  return { subject: `Website message: ${d.topic} (${d.name})`, ...render(ctx, {
+    preheader: d.message.slice(0, 90),
+    heading: 'New message from the website',
+    greeting: 'Hello,',
+    blocks: [
+      { rows },
+      { note: esc(d.message).replace(/\n/g, '<br>') },
+      { p: 'Reply to this email to answer them directly.' },
+    ],
+    signoff: 'IPCM website',
+  }) }
+}

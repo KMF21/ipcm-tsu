@@ -153,6 +153,15 @@ Setup (one time):
 
 Until the key is set, emails are skipped and logged as "Not sent (email not set up)"; everything else works.
 
+## Public website
+
+Pages: home, programmes (+5 detail pages), about, admissions, people, research, contact, FAQ, privacy, verify.
+Copy lives in `src/lib/content.ts` (from the approved Content & Programme Brief). People and research posts read
+from the `people` and `posts` tables and fall back to clearly tagged placeholders while those are empty.
+The contact form stores messages in `contact_messages` (migration 009) and emails `CONTACT_INBOX`
+(or `EMAIL_REPLY_TO`), with an acknowledgement to the sender; limited to 5 messages per hour per visitor.
+Amber "Placeholder" tags disappear when `NEXT_PUBLIC_APP_ENV=production`.
+
 ## Test accounts (development and staging only)
 
 Run `supabase/test-users.sql` in the Supabase SQL editor. It creates one confirmed account per role
