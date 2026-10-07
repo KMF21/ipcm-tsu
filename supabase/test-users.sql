@@ -56,8 +56,10 @@ begin
     );
 
     -- The on_auth_user_created trigger has just created the profile as 'applicant'.
-    -- Running in the SQL editor (no end-user JWT), the role guard allows this change.
+    -- Mark this as a system update so the role guard allows the change (transaction-local).
+    perform set_config('ipcm.system_update', 'on', true);
     update public.profiles set role = u.role::public.user_role where id = new_id;
+    perform set_config('ipcm.system_update', 'off', true);
 
     raise notice 'Created % as %', u.email, u.role;
   end loop;
