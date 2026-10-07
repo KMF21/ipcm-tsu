@@ -94,7 +94,7 @@ export default function AboutPage() {
               <figcaption className="mt-8 flex items-center gap-4 border-t border-line pt-6">
                 <Avatar name={site.director.name} size={56} />
                 <div>
-                  <p className="font-semibold text-navy">{site.director.name}<PlaceholderTag show={site.director.placeholder} /></p>
+                  <p className="font-semibold text-navy">{site.director.name}</p>
                   <p className="text-label text-ink-muted">{site.director.title}</p>
                 </div>
               </figcaption>

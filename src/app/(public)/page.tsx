@@ -176,7 +176,7 @@ export default function HomePage() {
               <div>
                 <p className="font-semibold text-navy">
                   {site.director.name}
-                  <PlaceholderTag show={site.director.placeholder} />
+                
                 </p>
                 <p className="text-label text-ink-muted">Institute of Peace and Conflict Management</p>
               </div>
