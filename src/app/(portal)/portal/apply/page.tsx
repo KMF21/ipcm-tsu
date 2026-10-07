@@ -25,8 +25,11 @@ export default async function ApplyPage({ searchParams }: { searchParams: Promis
   if (app && app.status !== 'draft') return <ApplicationStatus app={app} />
 
   const data = (app?.step_data ?? {}) as StepData
-  const furthest = app ? furthestStep(data) : 1
+  const paid = !!app?.application_fee_paid_at
+  const furthest = app ? (paid ? Math.max(2, furthestStep(data)) : 1) : 1
   const requested = Number(sp.step) || furthest
+  // Steps 2–8 open only after the application fee is paid.
+  if (app && !paid && requested > 1) redirect('/portal/apply/pay')
   const step = Math.min(Math.max(1, requested), furthest)
   const def = STEPS[step - 1]
 
@@ -60,6 +63,11 @@ export default async function ApplyPage({ searchParams }: { searchParams: Promis
 
   return (
     <div className="mx-auto max-w-3xl">
+      {sp.paid && (
+        <div className="mb-6">
+          <Alert tone="success" title="Payment received. Thank you.">Your application fee is paid. Now complete the rest of your application.</Alert>
+        </div>
+      )}
       {sp.saved && (
         <div className="mb-6">
           <Alert tone="success" title="Your progress is saved">Come back any time to finish. Log in and you’ll return to this page.</Alert>
@@ -72,7 +80,10 @@ export default async function ApplyPage({ searchParams }: { searchParams: Promis
       )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-label font-semibold uppercase tracking-wide text-teal">Application · Step {step} of {STEPS.length}</p>
-        {app && <Badge tone="navy">{app.ref}</Badge>}
+        <div className="flex flex-wrap gap-2">
+          {paid && <Badge tone="success">Application fee paid</Badge>}
+          {app && <Badge tone="navy">{app.ref}</Badge>}
+        </div>
       </div>
       <h1 className="mt-2 text-[1.75rem] font-bold leading-9 sm:text-h1">{def.heading}</h1>
       {app?.programmes && step > 1 && (
@@ -125,7 +136,7 @@ async function ReviewSummary({ data, app, documents, profileEmail }: { data: Ste
   const { data: place } = p ? await supabase.from('lgas').select('name, states(name)').eq('id', p.lga_id).single() : { data: null }
   return (
     <div className="space-y-5">
-      <p className="text-base text-ink">Check everything carefully. You can edit any section before you submit.</p>
+      <p className="text-base text-ink">Check everything carefully. You can edit any section before you submit. Submitting is free: your application fee is already paid.</p>
       <Section title="Programme" step={1}>
         <Row label="Programme" value={app.programmes ? `${app.programmes.code} · ${app.programmes.title}` : ''} />
         <Row label="Intake" value={app.cohorts ? `${app.cohorts.name} (starts ${formatDate(app.cohorts.start_date)})` : ''} />

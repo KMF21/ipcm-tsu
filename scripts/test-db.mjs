@@ -32,25 +32,51 @@ const [c] = await one(`select c.id cohort, p.id prog from public.cohorts c join 
 const [a] = await one(`insert into public.applications (user_id, programme_id, cohort_id) values ($1,$2,$3) returning id, ref, status`, [u.id, c.prog, c.cohort]); console.log('application:', a.ref, a.status)
 const fees = await one(`select id, type from public.fee_items where programme_id=$1`, [c.prog])
 const fid = (t) => fees.find((f) => f.type === t).id
-await one(`insert into public.payments (user_id, application_id, fee_item_id, reference, base_amount_kobo, processing_fee_kobo) values ($1,$2,$3,'IPCM-APP-1',1500000,30000)`, [u.id, a.id, fid('application')])
-console.log('pay app fee:', (await one(`select public.confirm_payment('IPCM-APP-1', 1530000, '{}'::jsonb) r`))[0].r)
-console.log('replay webhook:', (await one(`select public.confirm_payment('IPCM-APP-1', 1530000, '{}'::jsonb) r`))[0].r)
-console.log('status:', (await one(`select status from public.applications where id=$1`, [a.id]))[0].status)
-try { await one(`select public.transition_application($1,'admitted',$2)`, [a.id, u.id]) } catch (e) { console.log('illegal jump blocked:', e.message) }
+let failures = 0
+const check = (label, ok, detail = '') => { console.log(`${ok ? 'PASS' : 'FAIL'} ${label}${detail ? ' — ' + detail : ''}`); if (!ok) failures++ }
+const as = async (uid) => db.exec(uid ? `set request.jwt.sub = '${uid}'` : `reset request.jwt.sub`)
+
+// Middle path: choose programme -> pay application fee -> fill form -> submit (free)
+await as(u.id)
+try { await one(`select public.applicant_submit($1)`, [a.id]); check('cannot submit before paying', false) } catch (e) { check('cannot submit before paying', /Pay the application fee first/.test(e.message)) }
+const [{ r: pay1 }] = await one(`select public.create_payment('application') r`)
+check('create_payment uses server-side amount', pay1.amount_kobo === 1530000, String(pay1.amount_kobo))
+await as(null)
+const r1 = (await one(`select public.confirm_payment($1, 1530000, '{}'::jsonb) r`, [pay1.reference]))[0].r
+check('application fee confirmed with receipt', /^RCT-\d{4}-\d{6}$/.test(r1.receipt_no), r1.receipt_no)
+const r1b = (await one(`select public.confirm_payment($1, 1530000, '{}'::jsonb) r`, [pay1.reference]))[0].r
+check('replayed webhook is ignored', r1b.already_processed === true)
+const st1 = (await one(`select status, application_fee_paid_at is not null paid from public.applications where id=$1`, [a.id]))[0]
+check('paying unlocks the form but does not submit', st1.status === 'draft' && st1.paid === true, JSON.stringify(st1))
+await as(u.id)
+try { await one(`select public.create_payment('application')`); check('cannot pay application fee twice', false) } catch (e) { check('cannot pay application fee twice', /already paid/.test(e.message)) }
+try { await one(`select public.create_payment('tuition')`); check('tuition not due before offer', false) } catch (e) { check('tuition not due before offer', /not due/.test(e.message)) }
+await one(`select public.applicant_submit($1)`, [a.id])
+check('applicant submits for free after paying', (await one(`select status from public.applications where id=$1`, [a.id]))[0].status === 'submitted')
+await as(null)
+try { await one(`select public.transition_application($1,'admitted',$2)`, [a.id, u.id]); check('illegal jump blocked', false) } catch (e) { check('illegal jump blocked', /not allowed/.test(e.message)) }
 await one(`select public.transition_application($1,'under_review',$2)`, [a.id, u.id])
 await one(`select public.transition_application($1,'offered',$2)`, [a.id, u.id])
-await one(`insert into public.payments (user_id, application_id, fee_item_id, reference, base_amount_kobo, processing_fee_kobo) values ($1,$2,$3,'IPCM-TUI-1',3500000,30000)`, [u.id, a.id, fid('tuition')])
-try { await one(`select public.confirm_payment('IPCM-TUI-1', 100, '{}'::jsonb)`) } catch (e) { console.log('wrong amount rejected:', e.message) }
-await one(`update public.payments set status='pending' where reference='IPCM-TUI-1'`)
-console.log('pay tuition:', (await one(`select public.confirm_payment('IPCM-TUI-1', 3530000, '{}'::jsonb) r`))[0].r)
-console.log('enrolment:', (await one(`select reg_no from public.enrolments`))[0], 'role now:', (await one(`select role from public.profiles where id=$1`, [u.id]))[0].role)
-console.log('next NMA reg:', (await one(`select public.next_reg_no('NMA', 2026::smallint) r`))[0].r)
+await as(u.id)
+const [{ r: pay2 }] = await one(`select public.create_payment('tuition') r`)
+check('tuition amount from fee table', pay2.amount_kobo === 3530000, String(pay2.amount_kobo))
+await as(null)
+try { await one(`select public.confirm_payment($1, 100, '{}'::jsonb)`, [pay2.reference]); check('wrong amount rejected', false) } catch (e) { check('wrong amount rejected', /Amount mismatch/.test(e.message)) }
+const [{ r: pay3 }] = await (async () => { await as(u.id); const x = await one(`select public.create_payment('tuition') r`); await as(null); return x })()
+const r3 = (await one(`select public.confirm_payment($1, 3530000, '{}'::jsonb) r`, [pay3.reference]))[0].r
+check('tuition issues registration number', r3.reg_no === 'TSU/IPCM/NMA/2027/0001', r3.reg_no)
+check('applicant becomes student', (await one(`select role from public.profiles where id=$1`, [u.id]))[0].role === 'student')
 console.log('history:', (await one(`select string_agg(to_status::text, ' > ' order by id) h from public.application_status_history`))[0].h)
+// Applicants cannot confirm their own payments
+await as(u.id)
+try { await one(`set role authenticated`); await one(`select public.confirm_payment('x', 1, '{}'::jsonb)`); check('applicant cannot call confirm_payment', false) } catch (e) { check('applicant cannot call confirm_payment', /permission denied/.test(e.message), e.message.slice(0, 60)) } finally { await one(`reset role`) }
+await as(null)
 // A signed-in user must not be able to promote themselves
 await db.exec(`set request.jwt.sub = '${u.id}'`)
-try { await one(`update public.profiles set role='super_admin' where id=$1`, [u.id]); console.log('SELF-PROMOTION ALLOWED (bad)') } catch (e) { console.log('self-promotion blocked:', e.message) }
+try { await one(`update public.profiles set role='super_admin' where id=$1`, [u.id]); check('self-promotion blocked', false) } catch (e) { check('self-promotion blocked', /Only a super admin/.test(e.message)) }
 // SQL editor / service role (no end-user JWT) may grant roles
 await db.exec(`reset request.jwt.sub`)
 await one(`update public.profiles set role='super_admin' where id=$1`, [u.id])
-console.log('SQL editor grant:', (await one(`select role from public.profiles where id=$1`, [u.id]))[0].role)
+check('SQL editor can grant roles', (await one(`select role from public.profiles where id=$1`, [u.id]))[0].role === 'super_admin')
 await db.close()
+if (failures) { console.log(`${failures} check(s) failed`); process.exit(1) } else console.log('All database checks passed')

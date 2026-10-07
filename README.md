@@ -15,7 +15,8 @@ The full specification is the *IPCM-TSU Platform — Master Build Prompt*; conte
 | Supabase schema, business logic, RLS, storage, seed | Done and tested (`pnpm test:db`) |
 | Other pages | "Coming soon" stubs so no link 404s |
 | Accounts (register, verify, login, reset, logout, role redirects) | Done (Phase 1) |
-| Applications, Paystack, admin | Phase 1, next |
+| Application wizard + Paystack (pay after choosing programme, free submit) | Done (Phase 1) |
+| Admin review, offers | Phase 1, next |
 
 ## Getting started
 
@@ -88,6 +89,20 @@ Set `NEXT_PUBLIC_SITE_URL` in Vercel to the same production URL, so email links 
 | `/auth/callback` | Fallback for code-based links |
 | `/login` | Sign in → `/admin` for staff, `/portal` for everyone else (`?next=` respected, same-site only) |
 | `/forgot-password` → `/reset-password` | Password reset |
+
+## Payments (Paystack)
+
+Flow ("middle path"): choose programme → checklist + pay application fee → complete form → submit (free) → review →
+offer → pay tuition → registration number issued automatically.
+
+1. Vercel environment variables: `PAYSTACK_SECRET_KEY` (sk_test_… for now) and `SUPABASE_SERVICE_ROLE_KEY`
+   (needed to confirm payments on the server).
+2. Paystack dashboard → **Settings → API Keys & Webhooks** → Test Webhook URL:
+   `https://<your-domain>/api/paystack/webhook`
+3. Test cards: Paystack test card `4084 0840 8408 4081`, any future expiry, CVV `408`, PIN `0000`, OTP `123456`.
+
+Amounts always come from `fee_items`; the browser never sends a price. Callback and webhook both verify with
+Paystack server-to-server, and confirmation is idempotent (a repeated webhook does nothing).
 
 ## Test accounts (development and staging only)
 

@@ -226,7 +226,7 @@ export function DeclarationForm() {
       <CheckboxField name="declaration" label="I declare that the information I have given is true and complete." error={e.declaration}>
         I understand that false information may lead to my application being refused or my admission being withdrawn.
       </CheckboxField>
-      <StepNav step={8} continueLabel="Continue to payment" />
+      <StepNav step={8} continueLabel="Submit application" />
     </form>
   )
 }

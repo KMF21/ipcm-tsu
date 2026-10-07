@@ -4,6 +4,7 @@ export type MyApplication = {
   id: string
   ref: string
   status: string
+  application_fee_paid_at: string | null
   step_data: unknown
   cohort_id: string
   programme_id: string
@@ -16,7 +17,7 @@ export type MyApplication = {
 export async function getMyApplication(supabase: SupabaseClient, userId: string): Promise<MyApplication | null> {
   const { data } = await supabase
     .from('applications')
-    .select('id, ref, status, step_data, cohort_id, programme_id, created_at, programmes(code, title, short_title), cohorts(name, start_date, application_deadline)')
+    .select('id, ref, status, application_fee_paid_at, step_data, cohort_id, programme_id, created_at, programmes(code, title, short_title), cohorts(name, start_date, application_deadline)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(1)

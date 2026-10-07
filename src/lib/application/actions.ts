@@ -77,7 +77,10 @@ export async function saveProgrammeStep(_: StepState, fd: FormData): Promise<Ste
     if (error) return { message: 'We couldn’t start your application. Please try again.', values: formValues(fd) }
   }
   revalidatePath('/portal', 'layout')
-  redirect(nextUrl(1, String(fd.get('intent') ?? 'next')))
+  const intent = String(fd.get('intent') ?? 'next')
+  // Middle path: after choosing a programme, the applicant sees the checklist and pays before the rest of the form.
+  if (intent === 'next' && !existing?.application_fee_paid_at) redirect('/portal/apply/pay')
+  redirect(nextUrl(1, intent))
 }
 
 /** Steps 2–5, 7 and 8: validate, merge into step_data, mirror profile fields, move on. */
@@ -91,6 +94,7 @@ export async function saveStep(_: StepState, fd: FormData): Promise<StepState> {
   const app = await getMyApplication(supabase, user.id)
   if (!app) redirect('/portal/apply?step=1')
   if (app.status !== 'draft') redirect('/portal/apply')
+  if (!app.application_fee_paid_at) redirect('/portal/apply/pay')
   const current = (app.step_data ?? {}) as StepData
 
   // "Back" and "Save and exit" keep whatever was typed without forcing every field to be valid.
@@ -147,8 +151,13 @@ export async function saveStep(_: StepState, fd: FormData): Promise<StepState> {
       .eq('id', user.id)
   }
 
+  if (key === 'review') {
+    const { error: submitError } = await supabase.rpc('applicant_submit', { p_application: app.id })
+    if (submitError) return { message: 'We couldn’t submit your application. Please try again.' }
+    revalidatePath('/portal', 'layout')
+    redirect('/portal/apply?submitted=1')
+  }
   revalidatePath('/portal', 'layout')
-  if (key === 'review') redirect('/portal/apply/pay')
   redirect(nextUrl(step, intent))
 }
 
@@ -163,6 +172,7 @@ export async function uploadDocument(_: StepState, fd: FormData): Promise<StepSt
 
   const app = await getMyApplication(supabase, user.id)
   if (!app || !['draft', 'changes_requested'].includes(app.status)) return { message: 'Your application can no longer be changed.' }
+  if (app.status === 'draft' && !app.application_fee_paid_at) return { message: 'Pay the application fee first.' }
 
   if (file.size > rule.maxBytes) return { errors: { [type]: `This file is ${formatBytes(file.size)}. The limit is ${formatBytes(rule.maxBytes)}.` } }
   const bytes = new Uint8Array(await file.arrayBuffer())
