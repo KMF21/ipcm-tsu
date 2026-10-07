@@ -238,3 +238,17 @@ export function contactToStaff(ctx: EmailContext, d: { name: string; email: stri
     signoff: 'IPCM website',
   }) }
 }
+
+export function offerWithdrawn(ctx: EmailContext, d: { firstName: string; programme: string; reason: string }): Email {
+  return { subject: 'Your offer has been withdrawn', ...render(ctx, {
+    preheader: 'An update on your offer of admission.',
+    heading: 'Your offer has been withdrawn',
+    greeting: `Dear ${d.firstName || 'Applicant'},`,
+    blocks: [
+      { p: `Your offer of admission for the <strong>${esc(d.programme)}</strong> has been withdrawn by the admissions office.` },
+      { note: `Reason: ${esc(d.reason)}`, tone: 'warning' },
+      { p: 'You are welcome to apply for a later intake from your portal. If you think this is a mistake, reply to this email.' },
+      { button: { label: 'Open my portal', url: `${ctx.baseUrl}/portal/apply` } },
+    ],
+  }) }
+}

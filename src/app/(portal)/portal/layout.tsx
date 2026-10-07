@@ -1,12 +1,9 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { PortalShell, type PortalUser } from '@/components/portal/PortalShell'
-import { demoStudent } from '@/lib/demo'
 import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = { title: 'Student portal', robots: { index: false, follow: false } }
-
-const preview = process.env.NEXT_PUBLIC_PORTAL_PREVIEW === 'true'
 
 async function currentUser(): Promise<PortalUser | null> {
   const supabase = await createClient()
@@ -24,6 +21,6 @@ async function currentUser(): Promise<PortalUser | null> {
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const user = await currentUser()
-  if (!user && !preview) redirect('/login?next=/portal')
-  return <PortalShell user={user ?? demoStudent}>{children}</PortalShell>
+  if (!user) redirect('/login?next=/portal')
+  return <PortalShell user={user}>{children}</PortalShell>
 }

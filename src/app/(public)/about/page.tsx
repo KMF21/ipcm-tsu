@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import { BookOpen, Compass, Handshake, Lightbulb, Quote, Scale, Search, ShieldCheck, Sprout, Target, Users } from 'lucide-react'
-import { Avatar, ButtonLink, PlaceholderTag, SectionHeading } from '@/components/ui'
+import { ButtonLink, PlaceholderTag, SectionHeading } from '@/components/ui'
 import { PageHero } from '@/components/site/PageHero'
 import { images } from '@/lib/images'
 import { FORMAT, programmes } from '@/lib/programmes'
@@ -81,7 +81,7 @@ export default function AboutPage() {
       <section className="section" id="director">
         <div className="container-page grid items-start gap-10 lg:grid-cols-[1fr_1.5fr] lg:gap-14">
           <div className="relative aspect-[4/5] overflow-hidden rounded-[20px] bg-canvas lg:sticky lg:top-28">
-            <Image src={images.about.src} alt={images.about.alt} fill sizes="(min-width:1024px) 440px, 100vw" className="object-cover" />
+            <Image src={images.director.src} alt={images.director.alt} fill sizes="(min-width:1024px) 440px, 100vw" className="object-cover object-top" />
           </div>
           <div>
             <SectionHeading eyebrow="Director’s welcome" title="What you learn on Saturday, you can use on Monday" />
@@ -92,7 +92,7 @@ export default function AboutPage() {
                 {directorWelcome.slice(1).map((p) => <p key={p.slice(0, 20)} className="text-lead text-ink">{p}</p>)}
               </blockquote>
               <figcaption className="mt-8 flex items-center gap-4 border-t border-line pt-6">
-                <Avatar name={site.director.name} size={56} />
+                <Image src={images.directorHeadshot.src} alt="" width={56} height={56} className="h-14 w-14 rounded-full object-cover" />
                 <div>
                   <p className="font-semibold text-navy">{site.director.name}</p>
                   <p className="text-label text-ink-muted">{site.director.title}</p>

@@ -6,6 +6,7 @@ import { images } from '@/lib/images'
 import { POST_KIND, placeholderPosts, researchThemes, type Post } from '@/lib/content'
 import { createPublicClient } from '@/lib/supabase/public'
 import { formatDate } from '@/lib/utils'
+import { mediaUrl } from '@/lib/media'
 
 export const metadata = { title: 'Research and advisory', description: 'Research, policy briefs and advisory services of the Institute of Peace and Conflict Management, TSU.' }
 export const revalidate = 600
@@ -13,9 +14,9 @@ export const revalidate = 600
 async function getPosts(): Promise<Post[]> {
   const db = createPublicClient()
   if (!db) return placeholderPosts
-  const { data } = await db.from('posts').select('kind, title, excerpt, published_at, is_placeholder').not('published_at', 'is', null).order('published_at', { ascending: false }).limit(9)
+  const { data } = await db.from('posts').select('kind, title, excerpt, published_at, is_placeholder, pdf_path, author').not('published_at', 'is', null).order('published_at', { ascending: false }).limit(9)
   if (!data?.length) return placeholderPosts
-  return data.map((p) => ({ kind: p.kind, title: p.title, excerpt: p.excerpt ?? '', date: p.published_at ?? undefined, placeholder: p.is_placeholder }))
+  return data.map((p) => ({ kind: p.kind, title: p.title, excerpt: p.excerpt ?? '', date: p.published_at ?? undefined, placeholder: p.is_placeholder, pdf: mediaUrl(p.pdf_path) ?? undefined, author: p.author ?? undefined }))
 }
 
 const services = [
@@ -59,7 +60,8 @@ export default async function ResearchPage() {
                   <p className="text-sm font-semibold uppercase tracking-wide text-teal">{POST_KIND[p.kind] ?? p.kind}<PlaceholderTag show={p.placeholder} /></p>
                   <h3 className="mt-2 text-lg font-semibold leading-snug">{p.title}</h3>
                   <p className="mt-2 text-base text-ink-muted">{p.excerpt}</p>
-                  {p.date && <p className="mt-3 text-sm text-ink-muted">{formatDate(p.date)}</p>}
+                  {(p.date || p.author) && <p className="mt-3 text-sm text-ink-muted">{[p.author, p.date && formatDate(p.date)].filter(Boolean).join(' · ')}</p>}
+                  {p.pdf && <a href={p.pdf} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 font-semibold text-teal hover:underline">Read the PDF</a>}
                 </div>
               </li>
             ))}

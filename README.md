@@ -129,6 +129,19 @@ seat is free again; staff can extend or withdraw it. A payment Paystack confirms
 All decisions are recorded in the timeline and audit log. Design preview: `/styleguide/admin?view=dashboard`
 (`list`, `review`, `offer`, `lapsed`, `intakes`, `fees`, `payments`, `help`; add `&role=bursary` etc.).
 
+## More staff tools
+
+- **Staff accounts** (`/admin/staff`, super admin): add staff (a one-time password is shown), change roles, switch
+  accounts off. Adding an email that already has an account gives that account the role.
+- **Messages** (`/admin/messages`): contact-form inbox with New / Replied / Closed.
+- **Bank and sponsor payments** (`/admin/payments`, Bursary): record money paid outside Paystack by application
+  number and bank reference; it issues the same receipt and email, and tuition admits the student. Migration 010.
+- **CSV downloads** on Applications and Payments (opens in Excel).
+- **Website** (`/admin/website`, editor): add, edit or remove People (with photo) and Research items (with PDF).
+  Each section of the People page shows the sample list until someone is added to it.
+- After admission, students can change phone and address but not their name or email (they appear on documents);
+  staff correct those under Applicant help.
+
 ## Admission letters
 
 Issued automatically when tuition is paid: `/portal/admission-letter/<application id>` (student) and

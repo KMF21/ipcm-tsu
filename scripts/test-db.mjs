@@ -204,5 +204,33 @@ await one(`select public.applicant_close_lapsed_offer()`)
 check('lapsed offer closed when applying again', (await one(`select status from public.applications where id=$1`, [l.app]))[0].status === 'offer_expired')
 await as(null)
 
+// ---- Bursary records bank and sponsor payments ----
+const bank = await newApplicant('bisi@example.com')
+const [bur] = await one(`insert into auth.users (email) values ('bursar@example.com') returning id`)
+await one(`update public.profiles set role='bursary' where id=$1`, [bur.id])
+await as(bank.uid)
+await expectErr('applicants cannot record payments', `select public.staff_record_payment($1,'application','manual','TLR-1','x')`, [bank.app], /Only Bursary/)
+await as(bur.id)
+const rp = (await one(`select public.staff_record_payment($1,'application','manual','TLR-0001','Paid at First Bank Jalingo') r`, [bank.app]))[0].r
+check('bank payment gets a receipt and unlocks the form', /^RCT-/.test(rp.receipt_no) && (await one(`select application_fee_paid_at is not null p from public.applications where id=$1`, [bank.app]))[0].p === true, rp.receipt_no)
+await expectErr('same fee cannot be recorded twice', `select public.staff_record_payment($1,'application','manual','TLR-0002','again')`, [bank.app], /already paid/)
+await expectErr('tuition needs an offer', `select public.staff_record_payment($1,'tuition','sponsor','INV-9','x')`, [bank.app], /offer/)
+await as(null)
+await one(`update public.applications set status='offered', offer_expires_at=now() + interval '10 days' where id=$1`, [bank.app])
+await as(bur.id)
+const rt = (await one(`select public.staff_record_payment($1,'tuition','sponsor','INV-2027-14','Paid by Taraba State Ministry of Justice') r`, [bank.app]))[0].r
+check('sponsor tuition admits with a registration number', /^TSU\/IPCM\/NMA\/2027\/\d{4}$/.test(rt.reg_no ?? ''), rt.reg_no)
+const rcp = (await one(`select public.get_receipt($1) r`, [rt.payment_id]))[0].r
+check('recorded payment receipt shows method', rcp?.method === 'sponsor', rcp?.method)
+// Names on documents are protected after admission
+await as(bank.uid)
+await one(`set role authenticated`)
+try {
+  await one(`update public.profiles set phone='+2348030000000' where id=$1`, [bank.uid]); check('student can update phone', true)
+  await expectErr('student cannot change name after admission', `update public.profiles set surname='Other' where id=$1`, [bank.uid], /correct your name/)
+  await expectErr('user cannot change own email directly', `update public.profiles set email='x@example.com' where id=$1`, [bank.uid], /change your email/)
+} catch (e) { check('student can update phone', false, e.message) } finally { await one(`reset role`) }
+await as(null)
+
 await db.close()
 if (failures) { console.log(`${failures} check(s) failed`); process.exit(1) } else console.log('All database checks passed')

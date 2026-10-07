@@ -6,7 +6,11 @@ import { Intakes } from '@/components/admin/Intakes'
 import { Fees } from '@/components/admin/Fees'
 import { PaymentsList } from '@/components/admin/PaymentsList'
 import { ApplicantHelp } from '@/components/admin/ApplicantHelp'
-import { PageHeader } from '@/components/admin/bits'
+import { PageHeader, Tabs } from '@/components/admin/bits'
+import { AddStaffForm, RoleGuide, StaffRowForm } from '@/components/admin/StaffManager'
+import { AddPanel, PeopleList, PersonForm } from '@/components/admin/WebsiteEditor'
+import { RecordPaymentForm } from '@/components/admin/RecordPaymentForm'
+import { Card } from '@/components/ui'
 import type { ReviewDoc } from '@/components/admin/DocumentReview'
 import type { DecisionInfo } from '@/components/admin/DecisionPanel'
 import type { ApplicationDetail, ApplicationRow, CohortRow, FeeRow, PaymentListRow, PersonRow } from '@/lib/admin/queries'
@@ -123,7 +127,27 @@ export default async function AdminPreview({ searchParams }: { searchParams: Pro
   }
   else if (view === 'intakes') body = <div className="mx-auto max-w-5xl"><PageHeader eyebrow="Programmes" title="Intakes" intro="Open or close an intake, set its dates and seats." /><Intakes cohorts={cohorts} programmes={programmes.map((p, i) => ({ id: `p${i}`, code: p.code, short_title: p.shortTitle }))} canEdit /></div>
   else if (view === 'fees') body = <div className="mx-auto max-w-5xl"><PageHeader eyebrow="Bursary" title="Fees" /><Fees fees={fees} canEdit /></div>
-  else if (view === 'payments') body = <div className="mx-auto max-w-5xl"><PageHeader eyebrow="Bursary" title="Payments" /><PaymentsList rows={payments} count={payments.length} page={1} size={25} params={{}} /></div>
+  else if (view === 'payments') body = <div className="mx-auto max-w-5xl"><PageHeader eyebrow="Bursary" title="Payments" /><div className="mb-6"><RecordPaymentForm /></div><PaymentsList rows={payments} count={payments.length} page={1} size={25} params={{}} /></div>
+  else if (view === 'staff') body = (
+    <div className="mx-auto max-w-5xl">
+      <PageHeader eyebrow="Super admin" title="Staff accounts" />
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]"><Card><h2 className="mb-4 text-h3 font-semibold">Add a staff member</h2><AddStaffForm /></Card><Card><h2 className="mb-4 text-h3 font-semibold">What each role can do</h2><RoleGuide /></Card></div>
+      <ul className="mt-8 divide-y divide-line rounded-card border border-line bg-white shadow-card">
+        <StaffRowForm s={{ id: 'a', name: 'Ruth Ishaku', email: 'ruth@example.com', role: 'super_admin', is_active: true, created_at: ago(30) }} self />
+        <StaffRowForm s={{ id: 'b', name: 'Musa Danladi', email: 'musa.d@example.com', role: 'admissions', is_active: true, created_at: ago(20) }} self={false} />
+        <StaffRowForm s={{ id: 'c', name: 'Grace Tanko', email: 'grace.t@example.com', role: 'bursary', is_active: false, created_at: ago(10) }} self={false} />
+      </ul>
+    </div>
+  )
+  else if (view === 'website') body = (
+    <div className="mx-auto max-w-4xl">
+      <PageHeader eyebrow="Content" title="Website" />
+      <Tabs current="people" items={[{ key: 'people', label: 'People', href: '#' }, { key: 'research', label: 'Research', href: '#' }]} />
+      <div className="mt-6 space-y-4"><AddPanel title="Add a person"><PersonForm /></AddPanel>
+        <PeopleList people={[{ id: 'p1', name: 'Prof. Elijah Akombo', role: 'Director', group_name: 'director', bio: null, expertise: [], sort_order: 0, photo: '/people/elijah-akombo-square.jpg' }, { id: 'p2', name: 'Dr. Amina Bello', role: 'Programmes Coordinator', group_name: 'staff', bio: null, expertise: ['Mediation'], sort_order: 10, photo: null }]} />
+      </div>
+    </div>
+  )
   else if (view === 'help') body = <div className="mx-auto max-w-4xl"><PageHeader eyebrow="Support" title="Applicant help" /><ApplicantHelp q="halima" people={found} canOpenApplications /></div>
   else body = (
     <AdminDashboard

@@ -21,4 +21,7 @@ export const can = {
   manageFees: any(['bursary', 'director', 'super_admin']),
   helpApplicants: any(['admissions', 'director', 'super_admin']),
   seeIntakes: any(['admissions', 'bursary', 'director', 'super_admin']),
+  manageStaff: any(['super_admin']),
+  messages: any(['admissions', 'director', 'super_admin']),
+  editContent: any(['editor', 'director', 'super_admin']),
 }

@@ -84,7 +84,7 @@ async function tuitionKobo(admin: ReturnType<typeof createAdminClient>, programm
   return (data?.base_amount_kobo ?? 0) + (data?.processing_fee_kobo ?? 0)
 }
 
-export type ApplicationEvent = 'submitted' | 'changes_requested' | 'offer' | 'extended' | 'declined'
+export type ApplicationEvent = 'submitted' | 'changes_requested' | 'offer' | 'extended' | 'declined' | 'withdrawn'
 
 /** After the applicant submits, or after a staff decision. */
 export async function notifyApplication(ctx: Ctx, applicationId: string, event: ApplicationEvent, extra: { note?: string | null } = {}) {
@@ -106,6 +106,8 @@ export async function notifyApplication(ctx: Ctx, applicationId: string, event: 
       await sendEmail({ ...e, ...base, kind: 'offer', dedupeKey: `offer:${app.id}:${app.offered_at}` })
     } else if (event === 'extended' && app.offer_expires_at) {
       await sendEmail({ ...T.offerExtended(ctx, { firstName: first, programme, payBy: lastPayDay(app.offer_expires_at) }), ...base, kind: 'offer_extended', dedupeKey: `extended:${app.id}:${app.offer_expires_at}` })
+    } else if (event === 'withdrawn') {
+      await sendEmail({ ...T.offerWithdrawn(ctx, { firstName: first, programme, reason: extra.note ?? '' }), ...base, kind: 'offer_withdrawn', dedupeKey: `withdrawn:${app.id}` })
     } else if (event === 'declined') {
       await sendEmail({ ...T.applicationDeclined(ctx, { firstName: first, programme, reason: app.decision_reason ?? '' }), ...base, kind: 'declined', dedupeKey: `declined:${app.id}` })
     }

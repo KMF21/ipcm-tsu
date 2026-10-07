@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
 import {
-  Bell,
   BookOpen,
   CalendarDays,
   ClipboardCheck,
@@ -15,7 +14,6 @@ import {
   HelpCircle,
   LayoutDashboard,
   LogOut,
-  Search,
   UserRound,
 } from 'lucide-react'
 import { images } from '@/lib/images'
@@ -114,16 +112,10 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
               <Image src={images.logo.src} alt="TSU" width={36} height={36} className="h-9 w-9" />
               <span className="font-display text-base font-bold text-navy">IPCM Portal</span>
             </div>
-            <label className="relative hidden max-w-md flex-1 md:block">
-              <span className="sr-only">Search</span>
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-muted" aria-hidden />
-              <input type="search" placeholder="Search modules, materials, payments" className="h-12 w-full rounded-full border border-line bg-canvas pl-12 pr-4 text-base focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/25" />
-            </label>
+            <p className="hidden min-w-0 truncate text-base text-ink-muted md:block">
+              Signed in as <span className="font-semibold text-navy">{user.name}</span>
+            </p>
             <div className="flex items-center gap-2">
-              <button className="relative flex h-11 w-11 items-center justify-center rounded-full border border-line bg-white text-navy hover:bg-canvas" aria-label="Notifications, 2 unread">
-                <Bell className="h-5 w-5" aria-hidden />
-                <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-crimson px-1 text-[0.8125rem] font-bold text-white">2</span>
-              </button>
               <details className="relative md:hidden">
                 <summary className="list-none rounded-full [&::-webkit-details-marker]:hidden" aria-label="Account menu">
                   <Avatar name={user.name} size={44} />

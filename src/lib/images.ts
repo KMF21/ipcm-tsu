@@ -14,6 +14,8 @@ const ph = (file: string, alt: string, width: number, height: number): SiteImage
 })
 
 export const images = {
+  director: { src: '/people/elijah-akombo.jpg', alt: 'Prof. Elijah Akombo, Director of the Institute, in academic regalia', width: 720, height: 1080, placeholder: false },
+  directorHeadshot: { src: '/people/elijah-akombo-square.jpg', alt: 'Prof. Elijah Akombo', width: 320, height: 320, placeholder: false },
   logo: { src: '/tsu-logo.png', alt: 'Taraba State University logo', width: 500, height: 500, placeholder: false },
   // AI-generated stand-ins (Gemini). Keep placeholder: true until replaced with real IPCM photography.
   hero: ph('hero.jpg', 'Community leaders, women and officials in a dialogue circle led by a facilitator', 1672, 941),

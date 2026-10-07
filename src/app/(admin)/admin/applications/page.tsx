@@ -1,4 +1,6 @@
 import { ApplicationsList } from '@/components/admin/ApplicationsList'
+import { Download } from 'lucide-react'
+import { buttonClass } from '@/components/ui'
 import { PageHeader } from '@/components/admin/bits'
 import { PAGE_SIZE, getFilterOptions, listApplications } from '@/lib/admin/queries'
 import { can } from '@/lib/admin/roles'
@@ -18,7 +20,7 @@ export default async function ApplicationsPage({ searchParams }: { searchParams:
   ])
   return (
     <div className="mx-auto max-w-6xl">
-      <PageHeader eyebrow="Admissions" title="Applications" intro="Open an application to check the documents and make a decision. The oldest submissions are listed first." />
+      <PageHeader eyebrow="Admissions" title="Applications" intro="Open an application to check the documents and make a decision. The oldest submissions are listed first." action={<a href={`/admin/applications/export?${new URLSearchParams(Object.entries(params).filter(([, v]) => v) as [string, string][])}`} className={buttonClass('secondary')}><Download className="h-5 w-5" aria-hidden /> Download CSV</a>} />
       <ApplicationsList rows={list.rows} count={list.count} page={list.page} size={PAGE_SIZE} tab={tab} params={params} programmes={options.programmes} cohorts={options.cohorts} />
     </div>
   )

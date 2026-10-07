@@ -101,7 +101,7 @@ export type Person = { name: string; role: string; group: 'director' | 'board' |
 
 /** Shown until real profiles are added (people table). Every entry is a placeholder. */
 export const placeholderPeople: Person[] = [
-  { name: 'Dr. John Doe', role: 'Director', group: 'director', bio: 'Leads the Institute’s training, research and partnerships. Full profile, photo and signature to be supplied by the Institute.', expertise: ['Peace and conflict studies', 'Mediation'], placeholder: true },
+  { name: 'Prof. Elijah Akombo', role: 'Director', group: 'director', bio: 'Leads the Institute’s training, research and partnerships, and its work with government, traditional institutions, security agencies and civil society.', photo: '/people/elijah-akombo-square.jpg', placeholder: false },
   { name: 'Name to be announced', role: 'Deputy Director, Academic Programmes', group: 'staff', expertise: ['Curriculum', 'Assessment'], placeholder: true },
   { name: 'Name to be announced', role: 'Programmes Coordinator', group: 'staff', expertise: ['Cohort management', 'Partnerships'], placeholder: true },
   { name: 'Name to be announced', role: 'Admissions Officer', group: 'staff', expertise: ['Admissions', 'Student support'], placeholder: true },
@@ -114,7 +114,7 @@ export const placeholderPeople: Person[] = [
   { name: 'Facilitator', role: 'Peace and security studies', group: 'facilitator', expertise: ['PSS'], placeholder: true },
 ]
 
-export type Post = { kind: string; title: string; excerpt: string; date?: string; placeholder: boolean }
+export type Post = { kind: string; title: string; excerpt: string; date?: string; placeholder: boolean; pdf?: string; author?: string }
 export const POST_KIND: Record<string, string> = { policy_brief: 'Policy brief', publication: 'Publication', event_report: 'Event report', research_note: 'Research note', news: 'News' }
 
 export const placeholderPosts: Post[] = [

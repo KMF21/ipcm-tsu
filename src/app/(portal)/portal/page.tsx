@@ -1,143 +1,141 @@
 import Link from 'next/link'
-import { ArrowRight, BookOpen, CalendarCheck2, ClipboardCheck, MapPin, Megaphone, Percent, Wallet } from 'lucide-react'
-import { Alert, Badge, ButtonLink, Card, CardHeader, ProgressBar, StatCard, StatusPill } from '@/components/ui'
-import { demoAnnouncements, demoModules, demoSessions, demoStudent, demoWeek } from '@/lib/demo'
-import { cn } from '@/lib/utils'
 import { redirect } from 'next/navigation'
+import { ArrowRight, BookOpen, CalendarCheck2, ClipboardCheck, Download, MapPin, Megaphone, Receipt, Wallet } from 'lucide-react'
+import { Badge, ButtonLink, Card, CardHeader, StatCard, buttonClass } from '@/components/ui'
 import { createClient } from '@/lib/supabase/server'
+import { attendanceSummary, getAnnouncements, getCohortSessions, getMyAttendance, getMyEnrolment, getMyResult } from '@/lib/portal/queries'
+import { FORMAT } from '@/lib/programmes'
+import { site } from '@/lib/site'
+import { formatDate } from '@/lib/utils'
 
-const sessionTone: Record<string, string> = {
-  teal: 'border-l-teal bg-teal-50',
-  amber: 'border-l-amber bg-amber-50',
-  navy: 'border-l-navy bg-navy-50',
-  success: 'border-l-success bg-success-50',
-  neutral: 'border-l-line bg-canvas',
-}
+export const metadata = { title: 'Dashboard' }
+
+const lagosDay = (d: Date) => new Date(d.toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' })).getTime()
+const when = (iso: string) => new Date(iso).toLocaleString('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit', hour12: true })
 
 export default async function StudentDashboard({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
-  // Until someone is admitted, their home is their application. Admitted students see the dashboard.
-  // (In preview mode with no session, the demo dashboard is shown for design review.)
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (user) {
-    const { data: enrolment } = await supabase.from('enrolments').select('id').eq('user_id', user.id).limit(1).maybeSingle()
-    if (!enrolment) redirect((await searchParams).saved ? '/portal/apply?saved=1' : '/portal/apply')
-  }
+  if (!user) redirect('/login?next=/portal')
+  const enrolment = await getMyEnrolment(supabase, user.id)
+  // Until someone is admitted, their home is their application.
+  if (!enrolment) redirect((await searchParams).saved ? '/portal/apply?saved=1' : '/portal/apply')
+
+  const [{ data: profile }, sessions, marks, result, announcements] = await Promise.all([
+    supabase.from('profiles').select('first_name').eq('id', user.id).single(),
+    getCohortSessions(supabase, enrolment.cohort.id),
+    getMyAttendance(supabase, enrolment.id),
+    getMyResult(supabase, enrolment.id),
+    getAnnouncements(supabase, 4),
+  ])
+  const att = attendanceSummary(sessions, marks)
+  const upcoming = sessions.filter((s) => new Date(s.ends_at) >= new Date()).slice(0, 3)
+  const p = enrolment.programme
+  const start = new Date(`${enrolment.cohort.start_date}T09:00:00+01:00`)
+  const end = new Date(`${enrolment.cohort.end_date}T16:00:00+01:00`)
+  const now = new Date()
+  const daysToStart = Math.round((lagosDay(start) - lagosDay(now)) / 86_400_000)
+  const week = Math.min(FORMAT.durationWeeks, Math.max(1, Math.floor((lagosDay(now) - lagosDay(start)) / (7 * 86_400_000)) + 1))
+  const phase = now < start ? 'before' : now <= end ? 'during' : 'after'
+
   return (
-    <div className="mx-auto max-w-[1400px]">
-      <Alert tone="info" title="Design preview">
-        This dashboard uses sample data. It connects to your real records in Phase 2.
-      </Alert>
-
-      {/* Greeting */}
-      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="mx-auto max-w-[1200px]">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-[1.75rem] font-bold leading-9 sm:text-h1">Welcome back, {demoStudent.firstName}</h1>
-          <p className="mt-2 text-base text-ink-muted sm:text-lead">
-            {demoStudent.programme} · {demoStudent.cohort}
-          </p>
+          <h1 className="text-[1.75rem] font-bold leading-9 sm:text-h1">Welcome, {profile?.first_name || 'student'}</h1>
+          <p className="mt-2 text-base text-ink-muted sm:text-lead">{p.shortTitle} · {enrolment.cohort.name}</p>
         </div>
-        <Badge tone="navy" className="self-start sm:self-auto">{demoStudent.regNo}</Badge>
+        <Badge tone="navy" className="self-start sm:self-auto">{enrolment.reg_no}</Badge>
       </div>
 
-      {/* Stat cards: 2x2 on phone, 4 across on desktop */}
+      {/* Where the student is in the programme */}
+      <Card className="mt-6 overflow-hidden border-0 bg-navy p-0 text-white">
+        <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+          <div>
+            <p className="text-label font-semibold uppercase tracking-wide text-teal-100">
+              {phase === 'before' ? 'Classes start soon' : phase === 'during' ? `Week ${week} of ${FORMAT.durationWeeks}` : 'Programme completed'}
+            </p>
+            <h2 className="mt-2 text-[1.375rem] font-semibold leading-8 text-white">
+              {phase === 'before'
+                ? daysToStart === 0 ? 'Your first class is today' : `${daysToStart} day${daysToStart === 1 ? '' : 's'} to your first class`
+                : phase === 'during'
+                  ? upcoming[0] ? upcoming[0].title : 'Classes are under way'
+                  : result?.published_at ? 'Your results are out' : 'Results are being finalised'}
+            </h2>
+            <p className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-base text-white/85">
+              <span className="flex items-center gap-2"><CalendarCheck2 className="h-5 w-5" aria-hidden />{phase === 'during' && upcoming[0] ? when(upcoming[0].starts_at) : `${FORMAT.schedule}, from ${formatDate(enrolment.cohort.start_date)}`}</span>
+              <span className="flex items-center gap-2"><MapPin className="h-5 w-5" aria-hidden />{upcoming[0]?.venue || enrolment.cohort.venue || site.venue.value}</span>
+            </p>
+          </div>
+          <ButtonLink href={phase === 'after' ? '/portal/results' : '/portal/schedule'} variant="light" className="self-start sm:self-auto">
+            {phase === 'after' ? 'View results' : 'View timetable'}
+          </ButtonLink>
+        </div>
+      </Card>
+
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard icon={<BookOpen className="h-6 w-6" />} value="1/4" label="Modules completed" />
-        <StatCard icon={<ClipboardCheck className="h-6 w-6" />} value="100%" label="Attendance" tone="success" hint="Minimum 75%" />
-        <StatCard icon={<Percent className="h-6 w-6" />} value="80%" label="Current score" tone="navy" />
-        <StatCard icon={<Wallet className="h-6 w-6" />} value="₦0" label="Balance due" tone="success" hint="Fully paid" />
+        <StatCard icon={<BookOpen className="h-6 w-6" />} value={String(p.modules.length)} label="Modules" hint="Plus a capstone project" />
+        <StatCard icon={<ClipboardCheck className="h-6 w-6" />} value={att.pct === null ? '—' : `${att.pct}%`} label="Attendance" tone={att.pct !== null && att.pct < 75 ? 'amber' : 'success'} hint="You need at least 75%" />
+        <StatCard icon={<CalendarCheck2 className="h-6 w-6" />} value={`${att.held}/${sessions.length || FORMAT.durationWeeks}`} label="Sessions held" tone="navy" />
+        <StatCard icon={<Wallet className="h-6 w-6" />} value="₦0" label="Balance due" tone="success" hint="Tuition paid" />
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="min-w-0 space-y-6">
-          {/* Next session: the one obvious next action */}
-          <Card className="overflow-hidden border-0 bg-navy p-0 text-white">
-            <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
-              <div>
-                <p className="text-label font-semibold uppercase tracking-wide text-teal-100">Next session</p>
-                <h2 className="mt-2 text-[1.375rem] font-semibold leading-8 text-white">Module 2 · The mediation process</h2>
-                <p className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-base text-white/85">
-                  <span className="flex items-center gap-2"><CalendarCheck2 className="h-5 w-5" aria-hidden /> Saturday 6 March, 9:00am</span>
-                  <span className="flex items-center gap-2"><MapPin className="h-5 w-5" aria-hidden /> IPCM Lecture Hall</span>
-                </p>
-              </div>
-              <ButtonLink href="/portal/programme" variant="light" className="shrink-0">Prepare for class</ButtonLink>
+          <Card>
+            <CardHeader title="Coming up" action={<Link href="/portal/schedule" className="inline-flex min-h-[44px] items-center gap-1 font-semibold text-teal hover:underline">Timetable <ArrowRight className="h-4 w-4" aria-hidden /></Link>} />
+            {upcoming.length === 0 ? (
+              <p className="rounded-xl bg-canvas p-4 text-base text-ink-muted">{phase === 'after' ? 'There are no more classes in this programme.' : 'The timetable is published before the first class. You’ll see each Saturday’s session here.'}</p>
+            ) : (
+              <ul className="space-y-3">
+                {upcoming.map((s) => (
+                  <li key={s.id} className="rounded-xl border-l-4 border-l-teal bg-teal-50 p-4">
+                    <p className="font-semibold text-navy">{s.title}</p>
+                    <p className="text-sm text-ink-muted">{when(s.starts_at)}{s.modules ? ` · Module ${s.modules.number}` : ''}{s.venue ? ` · ${s.venue}` : ''}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+
+          <Card>
+            <CardHeader title="Your modules" action={<Link href="/portal/programme" className="inline-flex min-h-[44px] items-center gap-1 font-semibold text-teal hover:underline">Details <ArrowRight className="h-4 w-4" aria-hidden /></Link>} />
+            <ol className="space-y-3">
+              {p.modules.map((m) => (
+                <li key={m.number} className="flex gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy font-display text-sm font-bold text-white">{m.number}</span>
+                  <div><p className="font-semibold text-navy">{m.title}</p><p className="text-sm text-ink-muted">Weeks {m.number * 2 - 1}–{m.number * 2}</p></div>
+                </li>
+              ))}
+            </ol>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          <Card>
+            <h2 className="text-h3 font-semibold">Your documents</h2>
+            <div className="mt-4 space-y-3">
+              <a href={`/portal/admission-letter/${enrolment.application_id}`} download className={buttonClass('primary', 'md', 'w-full')}><Download className="h-5 w-5" aria-hidden /> Admission letter</a>
+              <ButtonLink href="/portal/payments" variant="secondary" className="w-full"><Receipt className="h-5 w-5" aria-hidden /> Receipts</ButtonLink>
             </div>
           </Card>
-
-          {/* Modules */}
           <Card>
-            <CardHeader title="My modules" subtitle="Two Saturdays per module" action={<Link href="/portal/programme" className="hidden min-h-[44px] items-center gap-1 font-semibold text-teal sm:flex">View all <ArrowRight className="h-4 w-4" aria-hidden /></Link>} />
-
-            {/* Module cards: one column on phones, two from tablet up */}
-            <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              {demoModules.map((m) => (
-                <li key={m.n} className="flex flex-col rounded-xl border border-line p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="font-semibold text-navy">{m.n}. {m.title}</p>
-                    <span className="shrink-0 font-semibold text-navy">{m.score}</span>
-                  </div>
-                  <p className="mt-1 text-sm text-ink-muted">{m.facilitator}</p>
-                  <div className="mt-4"><ProgressBar value={m.progress} label="Progress" tone={m.progress === 100 ? 'success' : 'teal'} /></div>
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <StatusPill status={m.status} />
-                    <span className="whitespace-nowrap text-sm text-ink-muted">Weeks {m.n * 2 - 1}–{m.n * 2}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </Card>
-
-          {/* Announcements */}
-          <Card>
-            <CardHeader title="Announcements" />
-            <ul className="divide-y divide-line">
-              {demoAnnouncements.map((a) => (
-                <li key={a.title} className="flex items-start gap-4 py-4 first:pt-0 last:pb-0">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal"><Megaphone className="h-5 w-5" aria-hidden /></span>
-                  <div>
+            <h2 className="flex items-center gap-2 text-h3 font-semibold"><Megaphone className="h-5 w-5 text-teal" aria-hidden /> Announcements</h2>
+            {announcements.length === 0 ? (
+              <p className="mt-3 text-base text-ink-muted">No announcements yet.</p>
+            ) : (
+              <ul className="mt-3 divide-y divide-line">
+                {announcements.map((a) => (
+                  <li key={a.id} className="py-3">
                     <p className="font-semibold text-navy">{a.title}</p>
-                    <p className="text-sm text-ink-muted">{a.when}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                    <p className="mt-1 whitespace-pre-line text-base text-ink">{a.body}</p>
+                    <p className="mt-1 text-sm text-ink-muted">{formatDate(a.created_at)}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Card>
         </div>
-
-        {/* Schedule column */}
-        <Card className="h-fit">
-          <CardHeader title="Class schedule" subtitle="Saturday 6 March · 5 items" />
-          <div className="grid grid-cols-7 gap-1.5" role="list" aria-label="This week">
-            {demoWeek.map((d) => (
-              <div
-                key={d.iso}
-                role="listitem"
-                className={cn(
-                  'flex flex-col items-center rounded-xl border py-2.5',
-                  d.active ? 'border-teal bg-teal text-white' : 'border-line text-ink',
-                )}
-                aria-current={d.active ? 'date' : undefined}
-              >
-                <span className="text-lg font-bold">{d.date}</span>
-                <span className={cn('text-sm', d.active ? 'text-white/90' : 'text-ink-muted')}>{d.day}</span>
-              </div>
-            ))}
-          </div>
-          <ol className="mt-5 space-y-3">
-            {demoSessions.map((s) => (
-              <li key={s.title} className="flex gap-4">
-                <span className="w-[68px] shrink-0 pt-3 text-sm font-medium text-ink-muted">{s.time}</span>
-                <div className={cn('flex-1 rounded-xl border-l-4 p-3.5', sessionTone[s.tone])}>
-                  <p className="font-semibold leading-snug text-navy">{s.title}</p>
-                  <p className="mt-1 text-sm text-ink-muted">
-                    {s.time} – {s.end}{s.facilitator ? ` · ${s.facilitator}` : ''}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </Card>
       </div>
     </div>
   )

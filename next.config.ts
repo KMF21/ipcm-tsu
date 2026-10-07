@@ -3,7 +3,7 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
   experimental: {
     // Document uploads go through Server Actions (largest allowed file is 2 MB).
-    serverActions: { bodySizeLimit: '3mb' },
+    serverActions: { bodySizeLimit: '4.5mb' }, // Vercel's request limit; uploads are capped at 4 MB
   },
   // Receipt PDFs read these files at runtime; make sure they ship with the serverless function.
   outputFileTracingIncludes: {

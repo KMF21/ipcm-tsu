@@ -5,20 +5,23 @@ import { PageHero } from '@/components/site/PageHero'
 import { images } from '@/lib/images'
 import { placeholderPeople, type Person } from '@/lib/content'
 import { createPublicClient } from '@/lib/supabase/public'
+import { mediaUrl } from '@/lib/media'
 
 export const metadata = { title: 'People', description: 'Leadership, advisory board and facilitators of the Institute of Peace and Conflict Management, TSU.' }
 export const revalidate = 600
 
 async function getPeople(): Promise<Person[]> {
   const db = createPublicClient()
-  if (!db) return placeholderPeople
-  const { data } = await db.from('people').select('name, role, group_name, bio, expertise, photo_path, is_placeholder').order('sort_order')
-  if (!data?.length) return placeholderPeople
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  return data.map((p) => ({
-    name: p.name, role: p.role, group: p.group_name, bio: p.bio ?? undefined, expertise: p.expertise ?? [], placeholder: p.is_placeholder,
-    photo: p.photo_path ? `${url}/storage/v1/object/public/public-media/${p.photo_path}` : null,
+  const { data } = db ? await db.from('people').select('name, role, group_name, bio, expertise, photo_path, is_placeholder').order('sort_order') : { data: null }
+  const real: Person[] = (data ?? []).map((p) => ({
+    name: p.name, role: p.role, group: p.group_name, bio: p.bio ?? undefined, expertise: p.expertise ?? [], placeholder: p.is_placeholder, photo: mediaUrl(p.photo_path),
   }))
+  // Each section falls back to the sample list until someone is added to it.
+  const groups: Person['group'][] = ['director', 'staff', 'facilitator', 'board']
+  return groups.flatMap((g) => {
+    const mine = real.filter((p) => p.group === g)
+    return mine.length ? mine : placeholderPeople.filter((p) => p.group === g)
+  })
 }
 
 function Card({ p, large }: { p: Person; large?: boolean }) {
@@ -57,8 +60,8 @@ export default async function PeoplePage() {
       {director && (
         <section className="section">
           <div className="container-page grid items-center gap-10 lg:grid-cols-[1fr_1.4fr]">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-[20px]">
-              <Image src={images.about.src} alt={images.about.alt} fill sizes="(min-width:1024px) 460px, 100vw" className="object-cover" />
+            <div className="relative mx-auto aspect-[4/5] w-full max-w-md overflow-hidden rounded-[20px] bg-canvas lg:max-w-none">
+              <Image src={images.director.src} alt={images.director.alt} fill sizes="(min-width:1024px) 440px, 100vw" className="object-cover object-top" />
             </div>
             <div>
               <SectionHeading eyebrow="Leadership" title={director.name} intro={director.bio} />

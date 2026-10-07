@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
-import { CalendarRange, ClipboardList, CreditCard, ExternalLink, LayoutDashboard, LifeBuoy, LogOut, Wallet } from 'lucide-react'
+import { CalendarRange, ClipboardList, CreditCard, ExternalLink, Globe, Inbox, LayoutDashboard, LifeBuoy, LogOut, UsersRound, Wallet } from 'lucide-react'
 import { images } from '@/lib/images'
 import { cn } from '@/lib/utils'
 import { Avatar } from '@/components/ui'
@@ -20,6 +20,9 @@ const items: Item[] = [
   { href: '/admin/intakes', label: 'Intakes', short: 'Intakes', Icon: CalendarRange, show: can.seeIntakes },
   { href: '/admin/fees', label: 'Fees', short: 'Fees', Icon: Wallet, show: can.manageFees },
   { href: '/admin/help', label: 'Applicant help', short: 'Help', Icon: LifeBuoy, show: can.helpApplicants },
+  { href: '/admin/messages', label: 'Messages', short: 'Messages', Icon: Inbox, show: can.messages },
+  { href: '/admin/website', label: 'Website', short: 'Website', Icon: Globe, show: can.editContent },
+  { href: '/admin/staff', label: 'Staff accounts', short: 'Staff', Icon: UsersRound, show: can.manageStaff },
 ]
 
 export function AdminShell({ user, children }: { user: { name: string; email: string; role: Role }; children: ReactNode }) {

@@ -77,5 +77,5 @@ export async function withdrawOffer(_: ActionState, fd: FormData): Promise<Actio
   const id = String(fd.get('application_id'))
   const reason = String(fd.get('reason') ?? '').trim()
   if (reason.length < 5) return { error: 'Give a reason for withdrawing the offer.' }
-  return run(appPath(id), 'staff_withdraw_offer', { p_app: id, p_reason: reason }, 'Offer withdrawn.')
+  return run(appPath(id), 'staff_withdraw_offer', { p_app: id, p_reason: reason }, 'Offer withdrawn. We are emailing the applicant.', { app: id, event: 'withdrawn', note: reason })
 }

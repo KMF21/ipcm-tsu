@@ -12,7 +12,7 @@ import {
   Quote,
   Users,
 } from 'lucide-react'
-import { Accordion, Avatar, ButtonLink, PlaceholderTag, SectionHeading } from '@/components/ui'
+import { Accordion, ButtonLink, PlaceholderTag, SectionHeading } from '@/components/ui'
 import { ProgrammeCard } from '@/components/site/ProgrammeCard'
 import { images } from '@/lib/images'
 import { FEES, programmes } from '@/lib/programmes'
@@ -163,8 +163,8 @@ export default function HomePage() {
       {/* 7. Director's message */}
       <section className="section">
         <div className="container-page grid items-center gap-10 lg:grid-cols-[1fr_1.4fr]">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-[20px]">
-            <Image src={images.about.src} alt={images.about.alt} fill sizes="(min-width:1024px) 480px, 100vw" className="object-cover" />
+          <div className="relative mx-auto aspect-[4/5] w-full max-w-md overflow-hidden rounded-[20px] bg-canvas lg:max-w-none">
+            <Image src={images.director.src} alt={images.director.alt} fill sizes="(min-width:1024px) 440px, 100vw" className="object-cover object-top" />
           </div>
           <figure>
             <Quote className="h-10 w-10 text-teal" aria-hidden />
@@ -172,13 +172,13 @@ export default function HomePage() {
               Peace is not the absence of conflict. It is the presence of people and institutions able to handle conflict without violence. Our programmes are short, practical and taught by people who have done this work.
             </blockquote>
             <figcaption className="mt-6 flex items-center gap-4">
-              <Avatar name="Director IPCM" size={52} />
+              <Image src={images.directorHeadshot.src} alt="" width={52} height={52} className="h-[52px] w-[52px] rounded-full object-cover" />
               <div>
                 <p className="font-semibold text-navy">
                   {site.director.name}
                 
                 </p>
-                <p className="text-label text-ink-muted">Institute of Peace and Conflict Management</p>
+                <p className="text-label text-ink-muted">{site.director.title}</p>
               </div>
             </figcaption>
             <Link href="/about" className="mt-6 inline-block font-semibold text-teal underline-offset-4 hover:underline">Read the Director’s welcome</Link>
