@@ -89,6 +89,12 @@ Set `NEXT_PUBLIC_SITE_URL` in Vercel to the same production URL, so email links 
 | `/login` | Sign in → `/admin` for staff, `/portal` for everyone else (`?next=` respected, same-site only) |
 | `/forgot-password` → `/reset-password` | Password reset |
 
+## Test accounts (development and staging only)
+
+Run `supabase/test-users.sql` in the Supabase SQL editor. It creates one confirmed account per role
+(`superadmin@`, `director@`, `admissions@`, `bursary@`, `facilitator@`, `editor@`, `applicant@`,
+`student@` — all `@example.com`), password **ipcm2027**. A cleanup block at the bottom removes them.
+
 ## Scripts
 
 | Command | What it does |
