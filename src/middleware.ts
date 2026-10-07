@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const STAFF = ['facilitator', 'editor', 'bursary', 'admissions', 'director', 'super_admin']
+import { homeForRole, isStaff } from '@/lib/auth/paths'
 
 /**
  * Refreshes the Supabase session and guards /portal and /admin by role.
@@ -11,6 +11,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isPortal = pathname.startsWith('/portal')
   const isAdmin = pathname.startsWith('/admin')
+  const isAuthPage = /^\/(login|register|forgot-password)(\/|$)/.test(pathname)
   if (process.env.NEXT_PUBLIC_PORTAL_PREVIEW === 'true' && isPortal) return NextResponse.next()
   if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return isPortal || isAdmin ? NextResponse.redirect(new URL('/login', request.url)) : NextResponse.next()
@@ -34,9 +35,11 @@ export async function middleware(request: NextRequest) {
     url.searchParams.set('next', pathname)
     return NextResponse.redirect(url)
   }
-  if (isAdmin && user) {
+  if (user && (isAdmin || isAuthPage)) {
     const { data } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if (!data || !STAFF.includes(data.role)) return NextResponse.redirect(new URL('/portal', request.url))
+    // Signed-in users don't need the login or register pages.
+    if (isAuthPage) return NextResponse.redirect(new URL(homeForRole(data?.role), request.url))
+    if (!isStaff(data?.role)) return NextResponse.redirect(new URL('/portal', request.url))
   }
   return response
 }

@@ -106,7 +106,7 @@ export function Header() {
             <Link href="/login" className="min-h-[44px] whitespace-nowrap px-3 py-2.5 text-base font-semibold text-navy hover:text-teal">
               Log in
             </Link>
-            <Link href="/apply" className={buttonClass('primary')}>
+            <Link href="/register" className={buttonClass('primary')}>
               Apply now
             </Link>
           </div>
@@ -159,7 +159,7 @@ export function Header() {
             ))}
           </nav>
           <div className="flex flex-col gap-3 border-t border-line p-5">
-            <Link href="/apply" onClick={() => setOpen(false)} className={buttonClass('primary', 'lg', 'w-full')}>
+            <Link href="/register" onClick={() => setOpen(false)} className={buttonClass('primary', 'lg', 'w-full')}>
               Apply now
             </Link>
             <Link href="/login" onClick={() => setOpen(false)} className={buttonClass('secondary', 'lg', 'w-full')}>

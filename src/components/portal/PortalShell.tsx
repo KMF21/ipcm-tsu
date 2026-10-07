@@ -21,6 +21,7 @@ import {
 import { images } from '@/lib/images'
 import { cn } from '@/lib/utils'
 import { Avatar } from '@/components/ui'
+import { signOut } from '@/lib/auth/actions'
 
 const nav = [
   { group: 'Learning', items: [
@@ -96,10 +97,12 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
           ))}
         </nav>
         <div className="border-t border-line p-3 lg:p-4">
-          <button className="flex min-h-[48px] w-full items-center justify-center gap-3 rounded-xl px-3 text-base font-medium text-ink hover:bg-canvas lg:justify-start" title="Log out">
-            <LogOut className="h-[22px] w-[22px]" aria-hidden />
-            <span className="hidden lg:inline">Log out</span>
-          </button>
+          <form action={signOut}>
+            <button type="submit" className="flex min-h-[48px] w-full items-center justify-center gap-3 rounded-xl px-3 text-base font-medium text-ink hover:bg-canvas lg:justify-start" title="Log out">
+              <LogOut className="h-[22px] w-[22px]" aria-hidden />
+              <span className="hidden lg:inline">Log out</span>
+            </button>
+          </form>
         </div>
       </aside>
 

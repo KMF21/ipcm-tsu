@@ -14,7 +14,8 @@ The full specification is the *IPCM-TSU Platform — Master Build Prompt*; conte
 | Student dashboard | Done with demo data — `/portal` |
 | Supabase schema, business logic, RLS, storage, seed | Done and tested (`pnpm test:db`) |
 | Other pages | "Coming soon" stubs so no link 404s |
-| Auth, applications, Paystack, admin | Phase 1 |
+| Accounts (register, verify, login, reset, logout, role redirects) | Done (Phase 1) |
+| Applications, Paystack, admin | Phase 1, next |
 
 ## Getting started
 
@@ -46,6 +47,26 @@ update public.profiles set role = 'super_admin' where email = 'you@example.com';
 ```
 
 (The role guard allows this from the SQL editor because it runs without a signed-in user's JWT; from the app only a super admin can change roles.)
+
+## Supabase Auth settings (one-time)
+
+In Supabase → **Authentication → URL Configuration**:
+
+- **Site URL:** your production URL (e.g. `https://ipcm.tsu.edu.ng`, or the Vercel URL for now)
+- **Redirect URLs:** add `https://<your-domain>/auth/callback` and `http://localhost:3000/auth/callback`
+
+In **Authentication → Providers → Email**: keep **Confirm email** on.
+
+Set `NEXT_PUBLIC_SITE_URL` in Vercel to the same production URL, so email links point to the right place.
+
+### Account flows
+
+| Route | Purpose |
+| --- | --- |
+| `/register` | Create account (`?programme=NMA` pre-selects a programme) → `/verify-email` |
+| `/auth/callback` | Handles links in confirmation and reset emails |
+| `/login` | Sign in → `/admin` for staff, `/portal` for everyone else (`?next=` respected, same-site only) |
+| `/forgot-password` → `/reset-password` | Password reset |
 
 ## Scripts
 

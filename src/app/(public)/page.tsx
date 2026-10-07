@@ -60,7 +60,7 @@ export default function HomePage() {
               Professional certificate programmes that equip security officers, public servants, community and faith leaders, and NGO workers to prevent, manage and resolve conflict.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
-              <ButtonLink href="/apply" size="lg">Apply now</ButtonLink>
+              <ButtonLink href="/register" size="lg">Apply now</ButtonLink>
               <ButtonLink href="/programmes" variant="secondary" size="lg">View programmes</ButtonLink>
             </div>
           </div>
@@ -94,7 +94,7 @@ export default function HomePage() {
             <p className="text-base text-white/85">Apply by {formatDate(intake.deadline)}</p>
             <p className="text-base text-white/85">{intake.seatsLeft} seats per programme</p>
           </div>
-          <ButtonLink href="/apply" variant="light">Start your application</ButtonLink>
+          <ButtonLink href="/register" variant="light">Start your application</ButtonLink>
         </div>
       </section>
 
@@ -233,7 +233,7 @@ export default function HomePage() {
           <h2 className="max-w-2xl text-[1.75rem] font-semibold leading-9 text-white sm:text-h2">Ready to build peace where you work and live?</h2>
           <p className="max-w-xl text-lead text-white/90">Applications for the {intake.label} are open.</p>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <ButtonLink href="/apply" variant="light" size="lg">Apply now</ButtonLink>
+            <ButtonLink href="/register" variant="light" size="lg">Apply now</ButtonLink>
             <ButtonLink href="/admissions" size="lg" className="border border-white/60 bg-transparent hover:bg-white/10">How admissions work</ButtonLink>
           </div>
         </div>

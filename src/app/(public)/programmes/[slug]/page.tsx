@@ -66,7 +66,7 @@ export default async function ProgrammePage({ params }: { params: Promise<{ slug
           <h1 className="mt-4 max-w-3xl text-[1.875rem] font-bold leading-[2.375rem] text-white sm:text-h1">{p.title}</h1>
           <p className="mt-5 max-w-2xl text-lead text-white/90">{p.promise}</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <ButtonLink href={`/apply?programme=${p.code}`} size="lg">Apply for {p.code}</ButtonLink>
+            <ButtonLink href={`/register?programme=${p.code}`} size="lg">Apply for {p.code}</ButtonLink>
             <ButtonLink href="#modules" size="lg" variant="light">See the modules</ButtonLink>
           </div>
         </div>
@@ -214,7 +214,7 @@ export default async function ProgrammePage({ params }: { params: Promise<{ slug
               <div className="flex justify-between"><dt className="text-ink-muted">Seats</dt><dd className="font-semibold text-navy">{intake.seats}</dd></div>
               <div className="flex justify-between"><dt className="text-ink-muted">Tuition</dt><dd className="font-semibold text-navy">{formatNaira(tuition)}</dd></div>
             </dl>
-            <ButtonLink href={`/apply?programme=${p.code}`} size="lg" className="mt-5 w-full">Apply for {p.code}</ButtonLink>
+            <ButtonLink href={`/register?programme=${p.code}`} size="lg" className="mt-5 w-full">Apply for {p.code}</ButtonLink>
             <p className="mt-3 text-center text-sm text-ink-muted">Application fee {formatNaira(appFee)}</p>
           </div>
         </aside>
@@ -239,7 +239,7 @@ export default async function ProgrammePage({ params }: { params: Promise<{ slug
             <p className="truncate font-semibold text-navy">{p.code} · {intake.label}</p>
             <p className="text-sm text-ink-muted">Tuition {formatNaira(tuition)}</p>
           </div>
-          <ButtonLink href={`/apply?programme=${p.code}`} className="shrink-0">Apply now</ButtonLink>
+          <ButtonLink href={`/register?programme=${p.code}`} className="shrink-0">Apply now</ButtonLink>
         </div>
       </div>
     </>
