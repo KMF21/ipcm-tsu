@@ -104,7 +104,7 @@ export async function buildAdmissionLetterPdf(l: AdmissionLetter, verifyUrl: str
     y -= 14.5
   }
   y -= 6
-  para(`To receive the certificate you need ${FORMAT.award.charAt(0).toLowerCase()}${FORMAT.award.slice(1)} Your timetable, course materials and announcements will appear in your student portal before the first class. Please quote your registration number in all correspondence.`)
+  para(`The certificate is awarded with ${FORMAT.award.charAt(0).toLowerCase()}${FORMAT.award.slice(1)} Your class details and announcements will appear in your student portal before the first class. Please quote your registration number in all correspondence.`)
   para('We look forward to welcoming you to the Institute.', 10)
 
   // Signature (left) and verification (right), side by side

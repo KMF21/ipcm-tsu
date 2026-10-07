@@ -28,6 +28,7 @@ export type DecisionInfo = {
   decisionReason?: string | null
   regNo?: string | null
   seats?: { taken: number; capacity: number }
+  canOverrideCapacity?: boolean
 }
 
 function Submit({ children, variant = 'primary', disabled }: { children: React.ReactNode; variant?: 'primary' | 'secondary' | 'destructive'; disabled?: boolean }) {
@@ -80,7 +81,7 @@ export function DecisionPanel({ info }: { info: DecisionInfo }) {
   const [extendState, extend] = useActionState<ActionState, FormData>(extendOffer, {})
   const [withdrawState, withdraw] = useActionState<ActionState, FormData>(withdrawOffer, {})
   const { docs } = info
-  const allApproved = docs.total > 0 && docs.approved === docs.total
+  const allApproved = docs.pending === 0 && docs.rejected === 0
   const full = info.seats ? info.seats.taken >= info.seats.capacity : false
 
   return (
@@ -116,9 +117,15 @@ export function DecisionPanel({ info }: { info: DecisionInfo }) {
               </label>
             </div>
             {info.seats && <p className="text-sm text-ink-muted">{info.seats.taken} of {info.seats.capacity} seats taken in this intake.</p>}
-            {!allApproved && <p className="text-sm text-ink-muted">Approve every document to make an offer.</p>}
-            {full && <p className="text-sm font-semibold text-crimson">This intake is full. A Director can add seats under Intakes.</p>}
-            <Submit disabled={!allApproved || full}><CheckCircle2 className="h-5 w-5" aria-hidden /> Make offer</Submit>
+            {!allApproved && <p className="text-sm text-ink-muted">Approve every uploaded document first, or ask the applicant to replace rejected ones.</p>}
+            {full && !info.canOverrideCapacity && <p className="text-sm font-semibold text-crimson">This intake is full. A Director can add seats under Intakes, or offer a seat over capacity.</p>}
+            {full && info.canOverrideCapacity && (
+              <label className="flex items-start gap-3 rounded-xl bg-amber-50 p-3 text-base text-ink">
+                <input type="checkbox" name="over_capacity" className="mt-1 h-5 w-5 rounded border-line text-teal focus:ring-teal" />
+                <span>The intake is full. Offer a seat over capacity anyway (recorded as your decision).</span>
+              </label>
+            )}
+            <Submit disabled={!allApproved || (full && !info.canOverrideCapacity)}><CheckCircle2 className="h-5 w-5" aria-hidden /> Make offer</Submit>
           </form>
 
           {docs.rejected > 0 && (

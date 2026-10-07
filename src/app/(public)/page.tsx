@@ -36,7 +36,7 @@ const steps = [
 const faqs = [
   { q: 'Who can apply?', a: "Anyone with five O'Level credits including English, or anyone aged 25 and above with at least two years of relevant work or community experience." },
   { q: 'How much does a programme cost?', a: `The application fee is ${formatNaira(FEES.application.base + FEES.application.processing)} and tuition is ${formatNaira(FEES.tuition.base + FEES.tuition.processing)}. Each includes a ₦300 processing charge.` },
-  { q: 'When do classes hold?', a: 'On Saturdays, 9:00am to 4:00pm, for eight weeks. Materials and recordings are available in your student portal.' },
+  { q: 'When do classes hold?', a: 'On Saturdays, 9:00am to 4:00pm, for eight weeks. Materials are shared through your class group and portal.' },
   { q: 'Can my organisation sponsor several staff?', a: 'Yes. Organisations can nominate staff and pay with a single invoice. Contact the admissions office to arrange it.' },
 ]
 

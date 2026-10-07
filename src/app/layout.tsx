@@ -1,3 +1,4 @@
+import { OfflineNotice } from '@/components/system/OfflineNotice'
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { site } from '@/lib/site'
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-teal focus:px-4 focus:py-2 focus:text-white">
           Skip to content
         </a>
+        <OfflineNotice />
         {children}
       </body>
     </html>

@@ -61,7 +61,7 @@ export function ProgrammeStep({ programmes, cohorts, saved, preselect }: { progr
 export function PersonalStep({ saved, profile, states }: { saved?: StepData['personal']; profile: Record<string, string | number | null>; states: StateWithLgas[] }) {
   const { state, action, e, v } = useStep(2)
   const pick = (k: string) => (v[k] ?? (saved as Record<string, unknown> | undefined)?.[k] ?? profile[k] ?? '') as string
-  const [stateId, setStateId] = useState(String(pick('state_id')))
+  const [stateId, setStateId] = useState(v.state_id ?? (saved && saved.state_id === null ? 'outside' : String(pick('state_id') ?? '')))
   const lgas = useMemo(() => states.find((s) => String(s.id) === stateId)?.lgas ?? [], [states, stateId])
   const maxDob = new Date(Date.now() - 16 * 365.25 * 864e5).toISOString().slice(0, 10)
   return (
@@ -81,7 +81,7 @@ export function PersonalStep({ saved, profile, states }: { saved?: StepData['per
         <RadioCards name="sex" label="Sex" defaultValue={pick('sex')} error={e.sex} options={[{ value: 'female', label: 'Female' }, { value: 'male', label: 'Male' }]} />
         <TextInput name="dob" label="Date of birth" type="date" max={maxDob} defaultValue={pick('dob')} error={e.dob} />
       </div>
-      <TextInput name="phone" label="Phone number" type="tel" inputMode="tel" autoComplete="tel" placeholder="0803 000 0000" hint="We’ll call or text you about your admission." defaultValue={pick('phone')} error={e.phone} />
+      <TextInput name="phone" label="Phone number" type="tel" inputMode="tel" autoComplete="tel" placeholder="0803 000 0000" hint="We’ll call or text you about your admission. Foreign numbers: start with + and the country code." defaultValue={pick('phone')} error={e.phone} />
       <div className="grid gap-5 sm:grid-cols-2">
         <SelectInput
           name="state_id"
@@ -89,21 +89,24 @@ export function PersonalStep({ saved, profile, states }: { saved?: StepData['per
           value={stateId}
           onChange={setStateId}
           error={e.state_id}
-          options={states.map((s) => [String(s.id), s.name] as const)}
+          options={[...states.map((s) => [String(s.id), s.name] as const), ['outside', 'Outside Nigeria'] as const]}
         />
-        <SelectInput
-          key={stateId}
-          name="lga_id"
-          label="Local Government Area"
-          placeholder={stateId ? 'Select your LGA' : 'Choose a state first'}
-          disabled={!stateId}
-          defaultValue={lgas.some((l) => String(l.id) === String(pick('lga_id'))) ? String(pick('lga_id')) : ''}
-          error={e.lga_id}
-          options={lgas.map((l) => [String(l.id), l.name] as const)}
-        />
+        {stateId === 'outside' ? (
+          <p className="self-end rounded-input bg-canvas px-4 py-3 text-base text-ink-muted">No LGA needed. Give your current address below.</p>
+        ) : (
+          <SelectInput
+            key={stateId}
+            name="lga_id"
+            label="Local Government Area"
+            placeholder={stateId ? 'Select your LGA' : 'Choose a state first'}
+            disabled={!stateId}
+            defaultValue={lgas.some((l) => String(l.id) === String(pick('lga_id'))) ? String(pick('lga_id')) : ''}
+            error={e.lga_id}
+            options={lgas.map((l) => [String(l.id), l.name] as const)}
+          />
+        )}
       </div>
       <TextInput name="address" label="Residential address" autoComplete="street-address" defaultValue={pick('address')} error={e.address} />
-      <TextInput name="nin" label="NIN (National Identification Number)" required={false} inputMode="numeric" hint="Optional. 11 digits." defaultValue={pick('nin')} error={e.nin} />
       <StepNav step={2} />
     </form>
   )
@@ -208,8 +211,8 @@ export function StatementStep({ saved }: { saved?: StepData['statement'] }) {
         hint="Mention your role, a conflict or challenge you deal with, and how this programme will help you. Plain, simple English is fine."
         defaultValue={v.statement ?? saved?.statement}
         error={e.statement}
-        min={100}
-        max={300}
+        min={30}
+        max={400}
       />
       <StepNav step={7} />
     </form>

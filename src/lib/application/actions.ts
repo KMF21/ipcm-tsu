@@ -7,7 +7,7 @@ import { after } from 'next/server'
 import { notifyApplication } from '@/lib/email/notify'
 import { siteUrl } from '@/lib/site-url'
 import { createClient } from '@/lib/supabase/server'
-import { DOC_RULES, LAST_STEP, STEPS, ageOn, formatBytes, requiredDocs, schemas, sniffMime, type DocType, type StepData, type StepKey } from './steps'
+import { DOC_RULES, LAST_STEP, STEPS, formatBytes, schemas, sniffMime, type DocType, type StepData, type StepKey } from './steps'
 import { getMyApplication } from './queries'
 
 export type StepState = { errors?: Record<string, string>; message?: string; values?: Record<string, string> }
@@ -48,14 +48,14 @@ export async function saveProgrammeStep(_: StepState, fd: FormData): Promise<Ste
 
   const { data: cohort } = await supabase
     .from('cohorts')
-    .select('id, status, application_deadline, programme_id, programmes!inner(code)')
+    .select('id, status, application_deadline, accept_late, programme_id, programmes!inner(code)')
     .eq('id', parsed.data.cohort_id)
     .single()
   const code = (cohort?.programmes as unknown as { code: string } | null)?.code
   if (!cohort || code !== parsed.data.programme || cohort.status !== 'open') {
     return { errors: { cohort_id: 'This intake is not open. Choose another.' }, values: formValues(fd) }
   }
-  if (new Date(cohort.application_deadline + 'T23:59:59') < new Date()) {
+  if (!cohort.accept_late && new Date(cohort.application_deadline + 'T23:59:59+01:00') < new Date()) {
     return { errors: { cohort_id: 'Applications for this intake have closed.' }, values: formValues(fd) }
   }
 
@@ -114,22 +114,12 @@ export async function saveStep(_: StepState, fd: FormData): Promise<StepState> {
     return { errors: issuesToErrors(parsed.error.issues), values: formValues(fd) }
   }
 
-  // Cross-step rules
-  if (key === 'qualifications') {
-    const q = parsed.data as StepData['qualifications']
-    if (q?.is_mature_entry && current.personal?.dob && ageOn(current.personal.dob) < 25) {
-      return { errors: { is_mature_entry: 'Mature entry is for applicants aged 25 or above.' }, values: formValues(fd) }
-    }
-    if (!q?.is_mature_entry && q?.olevel_type === 'None') {
-      return { errors: { olevel_type: 'Without O’Level results, apply as a mature entrant (25+ with 2 years’ experience).' }, values: formValues(fd) }
-    }
-  }
+  // Entry-rule mismatches (mature entry under 25, no O'Level) no longer block the applicant:
+  // admissions sees them flagged on the review screen and decides.
   if (key === 'review') {
-    const { data: docs } = await supabase.from('documents').select('type').eq('application_id', app.id)
-    const have = new Set((docs ?? []).map((d) => d.type))
-    const missing = requiredDocs(current).filter((t) => !have.has(t))
-    const incomplete = [1, 2, 3, 4, 5, 6, 7].filter((n) => !(current.completed ?? []).includes(n))
-    if (missing.length || incomplete.length) {
+    // Missing documents don't block submission: admissions sees what's missing and can ask for it.
+    const incomplete = [1, 2, 3, 4, 5, 7].filter((n) => !(current.completed ?? []).includes(n))
+    if (incomplete.length) {
       return { message: 'Some sections are incomplete. Use the Edit links above to finish them.' }
     }
   }
@@ -149,7 +139,7 @@ export async function saveStep(_: StepState, fd: FormData): Promise<StepState> {
     const p = parsed.data as NonNullable<StepData['personal']>
     await supabase
       .from('profiles')
-      .update({ title: p.title, surname: p.surname, first_name: p.first_name, other_names: p.other_names ?? null, sex: p.sex, dob: p.dob, phone: p.phone, state_id: p.state_id, lga_id: p.lga_id, address: p.address, nin: p.nin ?? null })
+      .update({ title: p.title, surname: p.surname, first_name: p.first_name, other_names: p.other_names ?? null, sex: p.sex, dob: p.dob, phone: p.phone, state_id: p.state_id, lga_id: p.lga_id, address: p.address })
       .eq('id', user.id)
   }
   if (key === 'professional') {
@@ -237,10 +227,7 @@ export async function finishDocuments(_: StepState, fd: FormData): Promise<StepS
   if (!app) redirect('/portal/apply?step=1')
   const current = (app.step_data ?? {}) as StepData
   if (intent === 'next') {
-    const { data: docs } = await supabase.from('documents').select('type').eq('application_id', app.id)
-    const have = new Set((docs ?? []).map((d) => d.type))
-    const missing = requiredDocs(current).filter((t) => !have.has(t))
-    if (missing.length) return { message: `Still needed: ${missing.map((t) => DOC_RULES[t].label).join(', ')}.` }
+    // Applicants can move on with a document missing (e.g. a certificate they're still collecting).
     const data: StepData = { ...current, completed: Array.from(new Set([...(current.completed ?? []), 6])) }
     await supabase.from('applications').update({ step_data: data }).eq('id', app.id)
   }

@@ -59,6 +59,20 @@ export function IntakeForm({ cohort, programmes }: { cohort?: CohortRow; program
             {Object.entries(COHORT_STATUS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </Select>
         </Field>
+        <Field id={`am-${k}`} label="Attendance" hint="Off: not tracked. Information: tracked, never affects results. Required: counts, with a minimum.">
+          <Select id={`am-${k}`} name="attendance_mode" defaultValue={cohort?.attendance_mode ?? 'off'}>
+            <option value="off">Off (not tracked)</option>
+            <option value="info">For information only</option>
+            <option value="required">Required for the certificate</option>
+          </Select>
+        </Field>
+        <Field id={`ma-${k}`} label="Minimum attendance % (if required)">
+          <Input id={`ma-${k}`} name="min_attendance_pct" type="number" min={0} max={100} inputMode="numeric" defaultValue={cohort?.min_attendance_pct ?? ''} placeholder="e.g. 75" />
+        </Field>
+        <label className="flex min-h-[48px] items-center gap-3 rounded-input border border-line px-4 text-base text-ink sm:col-span-2">
+          <input type="checkbox" name="accept_late" defaultChecked={cohort?.accept_late ?? false} className="h-5 w-5 rounded border-line text-teal focus:ring-teal" />
+          Keep accepting applications after the closing date (late applications)
+        </label>
         <div className="sm:col-span-2">
           <Field id={`v-${k}`} label="Venue">
             <Input id={`v-${k}`} name="venue" defaultValue={cohort?.venue ?? ''} placeholder="IPCM Lecture Hall, Taraba State University, Jalingo" />

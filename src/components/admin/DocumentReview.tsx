@@ -17,7 +17,7 @@ export type ReviewDoc = {
 }
 
 const QUICK_REASONS: Record<string, string[]> = {
-  image: ['Photo is blurred or too dark. Upload a clear, recent photo.', 'Background is not plain. Use a plain white background.'],
+  image: ['Photo is blurred or too dark. Upload a clear, recent photo.', 'Part of the document is cut off. Upload a photo of the whole page.'],
   pdf: ['File is unreadable or incomplete. Upload a clear scan of the whole document.', 'Wrong document. Upload the document asked for here.'],
 }
 

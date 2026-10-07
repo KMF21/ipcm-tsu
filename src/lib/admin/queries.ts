@@ -105,7 +105,7 @@ export type ApplicationDetail = {
   cohorts: { id: string; name: string; start_date: string; capacity: number; offer_expiry_days: number } | null
   profiles: {
     title: string | null; first_name: string | null; other_names: string | null; surname: string | null
-    email: string; phone: string | null; sex: string | null; dob: string | null; address: string | null; nin: string | null
+    email: string; phone: string | null; sex: string | null; dob: string | null; address: string | null
     organisation: string | null; job_role: string | null; lgas: { name: string; states: { name: string } | null } | null
   } | null
   documents: { id: string; type: string; storage_path: string; mime: string; size_bytes: number; status: 'pending' | 'approved' | 'rejected'; rejection_reason: string | null; reviewed_at: string | null; created_at: string }[]
@@ -120,7 +120,7 @@ export async function getApplicationDetail(supabase: SupabaseClient, id: string)
     .select(`id, ref, status, step_data, statement, is_mature_entry, submitted_at, offered_at, offer_expires_at, decision_reason, application_fee_paid_at, created_at, user_id,
       programmes(code, title, short_title),
       cohorts(id, name, start_date, capacity, offer_expiry_days),
-      profiles(title, first_name, other_names, surname, email, phone, sex, dob, address, nin, organisation, job_role, lgas(name, states(name))),
+      profiles(title, first_name, other_names, surname, email, phone, sex, dob, address, organisation, job_role, lgas(name, states(name))),
       documents(id, type, storage_path, mime, size_bytes, status, rejection_reason, reviewed_at, created_at),
       application_status_history(id, from_status, to_status, note, created_at, profiles(first_name, surname, role))`)
     .eq('id', id)
@@ -188,6 +188,9 @@ export type CohortRow = {
   offer_expiry_days: number
   venue: string | null
   status: 'draft' | 'open' | 'closed' | 'running' | 'completed'
+  accept_late: boolean
+  attendance_mode: 'off' | 'info' | 'required'
+  min_attendance_pct: number | null
   programme_id: string
   programmes: { code: string; short_title: string } | null
   seats?: { admitted: number; offers_open: number; under_review: number; seats_taken: number }
@@ -195,7 +198,7 @@ export type CohortRow = {
 
 export async function listCohorts(supabase: SupabaseClient) {
   const [{ data }, { data: seats }] = await Promise.all([
-    supabase.from('cohorts').select('id, name, start_date, end_date, application_deadline, capacity, offer_expiry_days, venue, status, programme_id, programmes(code, short_title)').order('start_date', { ascending: false }),
+    supabase.from('cohorts').select('id, name, start_date, end_date, application_deadline, capacity, offer_expiry_days, venue, status, accept_late, attendance_mode, min_attendance_pct, programme_id, programmes(code, short_title)').order('start_date', { ascending: false }),
     supabase.rpc('staff_intake_seats'),
   ])
   const byId = new Map((seats ?? []).map((s: { cohort_id: string }) => [s.cohort_id, s]))

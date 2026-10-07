@@ -14,7 +14,7 @@ export const metadata = {
 }
 export const revalidate = 600
 
-type Intake = { id: string; name: string; start_date: string; application_deadline: string; programmes: { code: string; short_title: string } | null }
+type Intake = { id: string; name: string; start_date: string; application_deadline: string; accept_late: boolean; programmes: { code: string; short_title: string } | null }
 
 async function openIntakes(): Promise<Intake[]> {
   const db = createPublicClient()
@@ -22,9 +22,9 @@ async function openIntakes(): Promise<Intake[]> {
   const today = new Date().toISOString().slice(0, 10)
   const { data } = await db
     .from('cohorts')
-    .select('id, name, start_date, application_deadline, programmes(code, short_title)')
+    .select('id, name, start_date, application_deadline, accept_late, programmes(code, short_title)')
     .eq('status', 'open')
-    .gte('application_deadline', today)
+    .or(`application_deadline.gte.${today},accept_late.eq.true`)
     .order('start_date')
   return (data ?? []) as unknown as Intake[]
 }
@@ -73,7 +73,7 @@ export default async function AdmissionsPage() {
                   <p className="mt-1 text-base text-ink-muted">{c.name}</p>
                   <dl className="mt-4 space-y-1.5 text-base">
                     <div className="flex justify-between gap-3"><dt className="text-ink-muted">Classes start</dt><dd className="font-semibold text-navy">{formatDate(c.start_date)}</dd></div>
-                    <div className="flex justify-between gap-3"><dt className="text-ink-muted">Apply by</dt><dd className="font-semibold text-navy">{formatDate(c.application_deadline)}</dd></div>
+                    <div className="flex justify-between gap-3"><dt className="text-ink-muted">Apply by</dt><dd className="font-semibold text-navy">{c.application_deadline < new Date().toISOString().slice(0, 10) && c.accept_late ? 'Late applications open' : formatDate(c.application_deadline)}</dd></div>
                   </dl>
                 </li>
               ))}

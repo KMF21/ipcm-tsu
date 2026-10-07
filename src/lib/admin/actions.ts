@@ -11,7 +11,7 @@ export type ActionState = { ok?: boolean; message?: string; error?: string }
 
 /** Database messages from staff_* functions are written for people; anything else gets a safe default. */
 function friendly(message: string) {
-  const known = /Only |Approve every|Reject at least|intake is full|Give a reason|Choose today|at most 90|between 1 and 60|no documents|can only be|Only an open offer|not found/i
+  const known = /Only |Approve every|Approve or reject|Reject at least|intake is full|Give a reason|Choose today|at most 90|between 1 and 60|no documents|can only be|Only an open offer|not found/i
   return known.test(message) ? message.replace(/^.*?ERROR:\s*/, '') : 'Something went wrong. Please try again.'
 }
 
@@ -56,7 +56,7 @@ export async function makeOffer(_: ActionState, fd: FormData): Promise<ActionSta
   const id = String(fd.get('application_id'))
   const days = Number(fd.get('days'))
   if (!Number.isInteger(days) || days < 1 || days > 60) return { error: 'Offer length must be between 1 and 60 days.' }
-  return run(appPath(id), 'staff_make_offer', { p_app: id, p_days: days }, 'Offer made. We are emailing the applicant, who can now pay tuition.', { app: id, event: 'offer' })
+  return run(appPath(id), 'staff_make_offer', { p_app: id, p_days: days, p_over_capacity: fd.get('over_capacity') === 'on' }, 'Offer made. We are emailing the applicant, who can now pay tuition.', { app: id, event: 'offer' })
 }
 
 export async function declineApplication(_: ActionState, fd: FormData): Promise<ActionState> {

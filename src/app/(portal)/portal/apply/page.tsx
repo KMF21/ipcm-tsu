@@ -39,7 +39,7 @@ export default async function ApplyPage({ searchParams }: { searchParams: Promis
 
   const { data: profileRow } = await supabase
     .from('profiles')
-    .select('title, surname, first_name, other_names, sex, dob, phone, state_id, lga_id, address, nin, organisation, job_role, sector, years_experience')
+    .select('title, surname, first_name, other_names, sex, dob, phone, state_id, lga_id, address, organisation, job_role, sector, years_experience')
     .eq('id', user.id)
     .single()
   const profile = (profileRow ?? {}) as Record<string, string | number | null>
@@ -137,7 +137,7 @@ async function ReviewSummary({ data, app, documents, profileEmail }: { data: Ste
   const s = data.sponsorship
   const label = (list: readonly (readonly [string, string])[], v?: string) => list.find(([k]) => k === v)?.[1] ?? v
   const supabase = await createClient()
-  const { data: place } = p ? await supabase.from('lgas').select('name, states(name)').eq('id', p.lga_id).single() : { data: null }
+  const { data: place } = p?.lga_id ? await supabase.from('lgas').select('name, states(name)').eq('id', p.lga_id).single() : { data: null }
   return (
     <div className="space-y-5">
       <p className="text-base text-ink">Check everything carefully. You can edit any section before you submit. Submitting is free: your application fee is already paid.</p>
@@ -151,9 +151,8 @@ async function ReviewSummary({ data, app, documents, profileEmail }: { data: Ste
         <Row label="Phone" value={p?.phone} />
         <Row label="Sex" value={p?.sex === 'female' ? 'Female' : p?.sex === 'male' ? 'Male' : ''} />
         <Row label="Date of birth" value={p?.dob ? formatDate(p.dob) : ''} />
-        <Row label="State and LGA" value={place ? `${place.name}, ${(place.states as unknown as { name: string }).name}` : ''} />
+        <Row label="State and LGA" value={place ? `${place.name}, ${(place.states as unknown as { name: string }).name}` : p && p.state_id === null ? 'Outside Nigeria' : ''} />
         <Row label="Address" value={p?.address} />
-        <Row label="NIN" value={p?.nin} />
       </Section>
       <Section title="Work and experience" step={3}>
         <Row label="Status" value={label(EMPLOYMENT, w?.employment_status)} />
@@ -174,7 +173,7 @@ async function ReviewSummary({ data, app, documents, profileEmail }: { data: Ste
       <Section title="Documents" step={6}>
         {requiredDocs(data).map((t) => {
           const n = documents.filter((d) => d.type === t).length
-          return <Row key={t} label={DOC_RULES[t].label} value={n ? <span className="inline-flex items-center gap-1.5 text-success"><CheckCircle2 className="h-4 w-4" aria-hidden />{n > 1 ? `${n} files` : 'Uploaded'}</span> : <span className="font-medium text-crimson">Missing</span>} />
+          return <Row key={t} label={DOC_RULES[t].label} value={n ? <span className="inline-flex items-center gap-1.5 text-success"><CheckCircle2 className="h-4 w-4" aria-hidden />{n > 1 ? `${n} files` : 'Uploaded'}</span> : <span className="font-medium text-amber">Not uploaded yet. You can still submit; admissions may ask for it.</span>} />
         })}
       </Section>
       <Section title="Statement" step={7}>

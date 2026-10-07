@@ -41,7 +41,10 @@ export function Intakes({ cohorts, programmes, canEdit }: { cohorts: CohortRow[]
               <div className="h-2.5 overflow-hidden rounded-full bg-line" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Seats taken">
                 <div className={`h-full rounded-full ${pct >= 100 ? 'bg-crimson' : pct >= 80 ? 'bg-amber' : 'bg-teal'}`} style={{ width: `${pct}%` }} />
               </div>
-              <p className="mt-2 text-sm text-ink-muted">Offers last {c.offer_expiry_days} days{c.venue ? ` · ${c.venue}` : ''}</p>
+              <p className="mt-2 text-sm text-ink-muted">
+                Offers last {c.offer_expiry_days} days · attendance {c.attendance_mode === 'off' ? 'not tracked' : c.attendance_mode === 'info' ? 'for information only' : `required (${c.min_attendance_pct ?? 0}%)`}
+                {c.accept_late ? ' · late applications open' : ''}{c.venue ? ` · ${c.venue}` : ''}
+              </p>
             </div>
             {canEdit && (
               <details className="mt-4 rounded-xl border border-line">

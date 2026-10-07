@@ -9,6 +9,7 @@ import { FORMAT } from '@/lib/programmes'
 import { formatDate, formatNaira } from '@/lib/utils'
 import { daysUntil, isLapsed, lastPayDay } from '@/lib/admin/status'
 import { site } from '@/lib/site'
+import { WhatsAppButton } from '@/components/site/WhatsAppButton'
 
 export const metadata = { title: 'Payment' }
 
@@ -115,7 +116,10 @@ export default async function PayPage({ searchParams }: { searchParams: Promise<
         </ul>
         <div className="mt-6 space-y-3">
           {lapsed ? (
-            <ButtonLink href="/portal/apply" variant="secondary" size="lg" className="w-full">Back to my application</ButtonLink>
+            <>
+              <WhatsAppButton className="w-full" text={`Hello, my offer for ${app.programmes?.short_title ?? 'my programme'} (${app.ref}) has expired. I would still like to join. Can it be extended?`} label="Ask admissions to extend my offer" />
+              <ButtonLink href="/portal/apply" variant="secondary" size="lg" className="w-full">Back to my application</ButtonLink>
+            </>
           ) : (
             <PayButton feeType={isApplicationFee ? 'application' : 'tuition'} label={`Pay ${formatNaira(total)}`} />
           )}

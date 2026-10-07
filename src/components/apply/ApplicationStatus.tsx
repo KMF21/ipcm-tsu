@@ -1,5 +1,6 @@
 import { Clock, Download, FileCheck2, RotateCcw } from 'lucide-react'
 import { applyAgain } from '@/lib/application/actions'
+import { WhatsAppButton } from '@/components/site/WhatsAppButton'
 import { Alert, Badge, ButtonLink, Card, Stepper, buttonClass } from '@/components/ui'
 import type { MyApplication } from '@/lib/application/queries'
 import { formatDate } from '@/lib/utils'
@@ -48,6 +49,7 @@ export function ApplicationStatus({ app }: { app: MyApplication }) {
             <Download className="h-5 w-5" aria-hidden /> Download admission letter
           </a>
         )}
+        {lapsed && <WhatsAppButton text={`Hello, my offer for ${app.programmes?.short_title ?? 'my programme'} (${app.ref}) has expired. I would still like to join. Can it be extended?`} label="Ask admissions to extend my offer" />}
         {(lapsed || ['declined', 'withdrawn', 'offer_expired'].includes(app.status)) && (
           <form action={applyAgain} className="space-y-2">
             <button type="submit" className={buttonClass('primary', 'lg', 'w-full sm:w-auto')}>

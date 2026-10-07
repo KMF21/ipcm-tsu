@@ -19,9 +19,13 @@ const cohortSchema = z
     offer_expiry_days: z.coerce.number().int().min(1).max(60, 'At most 60 days'),
     venue: z.string().trim().max(160).optional(),
     status: z.enum(['draft', 'open', 'closed', 'running', 'completed']),
+    accept_late: z.string().optional().transform((v) => v === 'on'),
+    attendance_mode: z.enum(['off', 'info', 'required']).default('off'),
+    min_attendance_pct: z.string().optional().transform((v) => (v ? Number(v) : null)).refine((v) => v === null || (Number.isInteger(v) && v >= 0 && v <= 100), 'Minimum attendance must be between 0 and 100'),
   })
   .refine((v) => v.end_date >= v.start_date, { message: 'The end date must be on or after the start date', path: ['end_date'] })
   .refine((v) => v.application_deadline <= v.start_date, { message: 'Applications must close on or before the start date', path: ['application_deadline'] })
+  .refine((v) => v.attendance_mode !== 'required' || v.min_attendance_pct !== null, { message: 'Set the minimum attendance, or choose a different attendance option', path: ['min_attendance_pct'] })
 
 export async function saveCohort(_: ActionState, fd: FormData): Promise<ActionState> {
   const { supabase } = await requireStaff(can.manageIntakes)

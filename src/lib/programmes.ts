@@ -22,14 +22,14 @@ export const FORMAT = {
   durationWeeks: 8,
   schedule: 'Saturdays, 9:00am to 4:00pm',
   contactHours: 48,
-  mode: 'In person, with materials and recordings in the portal',
+  mode: 'In person, with class updates shared through your portal and class group',
   cohortSize: 40,
   assessment: [
     { label: 'Attendance and participation', weight: 20 },
     { label: 'Module exercises and quizzes', weight: 30 },
     { label: 'Capstone project', weight: 50 },
   ],
-  award: 'At least 75% attendance and 50% overall. Distinction at 70% and above.',
+  award: 'A pass mark of 50% overall, with Distinction at 70% and above. Any attendance requirement is set by the Institute for each intake.',
   entry: [
     "Five O'Level credits including English Language (WASSCE, NECO or equivalent), or",
     'Age 25 or above with at least 2 years of relevant work or community experience.',

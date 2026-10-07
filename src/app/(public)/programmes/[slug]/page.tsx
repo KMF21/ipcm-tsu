@@ -195,7 +195,7 @@ export default async function ProgrammePage({ params }: { params: Promise<{ slug
               <Accordion
                 items={[
                   { q: 'Do I need a background in peace studies?', a: 'No. Every programme starts from first principles and builds on your own experience.' },
-                  { q: 'What if I miss a Saturday?', a: 'Recordings and materials are in your portal. You need at least 75% attendance to be certified.' },
+                  { q: 'What if I miss a Saturday?', a: 'Let your facilitator know and catch up through your class group. Any attendance requirement is set for each intake and explained at the start.' },
                   { q: 'Is the certificate recognised?', a: 'It is awarded by Taraba State University and carries a unique number and QR code that employers can verify online.' },
                 ]}
               />

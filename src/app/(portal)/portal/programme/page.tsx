@@ -70,7 +70,8 @@ export default async function MyProgrammePage() {
               </li>
             ))}
           </ul>
-          <p className="mt-5 rounded-xl bg-canvas p-4 text-base text-ink">{FORMAT.award}</p>
+          <p className="mt-3 text-sm text-ink-muted">If attendance isn’t required for your intake, modules and the capstone make up the full 100%.</p>
+          <p className="mt-4 rounded-xl bg-canvas p-4 text-base text-ink">{FORMAT.award}</p>
         </Card>
       </div>
       {!enrolment && <ButtonLink href="/portal/apply" className="mt-8">Back to my application</ButtonLink>}

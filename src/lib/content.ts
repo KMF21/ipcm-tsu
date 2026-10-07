@@ -70,11 +70,11 @@ export const faqGroups: { id: string; title: string; items: Faq[] }[] = [
     id: 'classes',
     title: 'Programmes and classes',
     items: [
-      { q: 'When do classes hold?', a: `${FORMAT.schedule}, for ${FORMAT.durationWeeks} weeks (${FORMAT.contactHours} contact hours). Course materials and recordings are in your student portal.` },
+      { q: 'When do classes hold?', a: `${FORMAT.schedule}, for ${FORMAT.durationWeeks} weeks (${FORMAT.contactHours} contact hours). Your facilitator shares materials through the class WhatsApp group, linked in your portal.` },
       { q: 'Can I keep my job while studying?', a: 'Yes. The programmes are built for working adults and run on Saturdays only.' },
       { q: 'How many people are in a class?', a: `Up to ${FORMAT.cohortSize} participants per programme, so everyone takes part in discussions, role-plays and group work.` },
       { q: 'How am I assessed?', a: FORMAT.assessment.map((a) => `${a.label} ${a.weight}%`).join(', ') + '. The capstone is a practical project on a real conflict or intervention in your own workplace or community.' },
-      { q: 'What if I miss a Saturday?', a: 'Recordings and materials are in your portal, but you need at least 75% attendance to receive the certificate. Tell your facilitator in advance if you will be absent.' },
+      { q: 'What if I miss a Saturday?', a: 'Tell your facilitator in advance and catch up through your class group. If the Institute sets an attendance requirement for your intake, it will tell you at the start, and it can be waived for good reasons.' },
     ],
   },
   {

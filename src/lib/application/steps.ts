@@ -61,16 +61,20 @@ export const schemas = {
         return age >= 16 && age <= 100
       }, 'Check your date of birth'),
     phone: phoneSchema,
-    state_id: z.coerce.number({ message: 'Choose your state' }).int().positive('Choose your state'),
-    lga_id: z.coerce.number({ message: 'Choose your LGA' }).int().positive('Choose your LGA'),
-    address: z.string().trim().min(5, 'Enter your residential address').max(300),
-    nin: z
+    // "outside" = lives or comes from outside Nigeria: no state or LGA needed.
+    state_id: z
+      .string({ message: 'Choose your state' })
+      .trim()
+      .min(1, 'Choose your state')
+      .transform((v) => (v === 'outside' ? null : Number(v)))
+      .refine((v) => v === null || (Number.isInteger(v) && v > 0), 'Choose your state'),
+    lga_id: z
       .string()
       .trim()
       .optional()
-      .transform((v) => (v ? v.replace(/\s/g, '') : undefined))
-      .refine((v) => !v || /^\d{11}$/.test(v), 'A NIN has 11 digits'),
-  }),
+      .transform((v) => (v ? Number(v) : null)),
+    address: z.string().trim().min(5, 'Enter your residential address').max(300),
+  }).refine((d) => d.state_id === null || (Number.isInteger(d.lga_id) && (d.lga_id ?? 0) > 0), { path: ['lga_id'], message: 'Choose your LGA' }),
   professional: z
     .object({
       employment_status: z.enum(EMPLOYMENT.map(([v]) => v) as [string, ...string[]], { message: 'Choose one' }),
@@ -118,8 +122,8 @@ export const schemas = {
     statement: z
       .string()
       .trim()
-      .refine((s) => wordCount(s) >= 100, 'Write at least 100 words')
-      .refine((s) => wordCount(s) <= 300, 'Keep it to 300 words or fewer'),
+      .refine((s) => wordCount(s) >= 30, 'Write at least 30 words (a few sentences)')
+      .refine((s) => wordCount(s) <= 400, 'Keep it to 400 words or fewer'),
   }),
   review: z.object({
     declaration: z.literal('on', { message: 'Please confirm the declaration to continue' }),
@@ -142,15 +146,15 @@ export function ageOn(dob: string, at = new Date()) {
 export type DocType = 'passport_photo' | 'qualification' | 'identification' | 'cv' | 'sponsorship_letter'
 
 export const DOC_RULES: Record<DocType, { label: string; help: string; mimes: string[]; maxBytes: number; max: number }> = {
-  passport_photo: { label: 'Passport photograph', help: 'Recent, face clearly visible, plain white background. We resize it for you.', mimes: ['image/jpeg', 'image/png'], maxBytes: 300 * 1024, max: 1 },
-  qualification: { label: 'O’Level result or highest qualification', help: 'PDF of your certificate or result. Up to 3 files.', mimes: ['application/pdf'], maxBytes: 2 * 1024 * 1024, max: 3 },
-  identification: { label: 'Means of identification', help: 'NIN slip, voter’s card, international passport or driver’s licence.', mimes: ['application/pdf', 'image/jpeg', 'image/png'], maxBytes: 1024 * 1024, max: 1 },
-  cv: { label: 'CV or evidence of experience', help: 'Required for mature entry: show at least 2 years of relevant work.', mimes: ['application/pdf'], maxBytes: 1024 * 1024, max: 1 },
-  sponsorship_letter: { label: 'Sponsorship or nomination letter', help: 'On your organisation’s letterhead, signed.', mimes: ['application/pdf'], maxBytes: 1024 * 1024, max: 1 },
+  passport_photo: { label: 'Passport photograph', help: 'A recent, clear photo of your face. We crop and resize it for you.', mimes: ['image/jpeg', 'image/png'], maxBytes: 4 * 1024 * 1024, max: 1 },
+  qualification: { label: 'O’Level result or highest qualification', help: 'A PDF, or a clear photo of the whole certificate or result. Up to 3 files.', mimes: ['application/pdf', 'image/jpeg', 'image/png'], maxBytes: 4 * 1024 * 1024, max: 3 },
+  identification: { label: 'Means of identification (optional)', help: 'If you have one: voter’s card, international passport, driver’s licence or staff ID.', mimes: ['application/pdf', 'image/jpeg', 'image/png'], maxBytes: 4 * 1024 * 1024, max: 1 },
+  cv: { label: 'CV or evidence of experience', help: 'For mature entry: anything that shows at least 2 years of relevant work. A letter or a photo is fine.', mimes: ['application/pdf', 'image/jpeg', 'image/png'], maxBytes: 4 * 1024 * 1024, max: 1 },
+  sponsorship_letter: { label: 'Sponsorship or nomination letter', help: 'From your organisation. A PDF or a clear photo of the signed letter.', mimes: ['application/pdf', 'image/jpeg', 'image/png'], maxBytes: 4 * 1024 * 1024, max: 1 },
 }
 
 export function requiredDocs(stepData: StepData): DocType[] {
-  const docs: DocType[] = ['passport_photo', 'qualification', 'identification']
+  const docs: DocType[] = ['passport_photo', 'qualification']
   if (stepData.qualifications?.is_mature_entry) docs.push('cv')
   if (stepData.sponsorship?.sponsored === 'yes') docs.push('sponsorship_letter')
   return docs

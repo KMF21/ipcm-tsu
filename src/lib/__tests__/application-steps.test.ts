@@ -8,17 +8,26 @@ describe('wizard rules', () => {
     expect(furthestStep({ completed: [1, 3] })).toBe(2)
   })
   it('requires CV for mature entry and a letter when sponsored', () => {
-    expect(requiredDocs({})).toEqual(['passport_photo', 'qualification', 'identification'])
+    expect(requiredDocs({})).toEqual(['passport_photo', 'qualification']) // ID is optional
     expect(requiredDocs({ qualifications: { is_mature_entry: true } as never, sponsorship: { sponsored: 'yes' } as never })).toContain('cv')
     expect(requiredDocs({ sponsorship: { sponsored: 'yes' } as never })).toContain('sponsorship_letter')
   })
+  it('accepts applicants from outside Nigeria and foreign phone numbers', () => {
+    const base = { title: 'Mr', surname: 'Okafor', first_name: 'Chidi', sex: 'male', dob: '1980-01-01', address: '12 Kingsway, London' }
+    const r = schemas.personal.safeParse({ ...base, phone: '+44 7700 900123', state_id: 'outside' })
+    expect(r.success).toBe(true)
+    if (r.success) { expect(r.data.state_id).toBeNull(); expect(r.data.phone).toBe('+447700900123') }
+    expect(schemas.personal.safeParse({ ...base, phone: '0803 000 0000', state_id: '35' }).success).toBe(false) // LGA needed in Nigeria
+  })
   it('checks statement length by words', () => {
     expect(wordCount('one two  three')).toBe(3)
-    expect(schemas.statement.safeParse({ statement: 'word '.repeat(99) }).success).toBe(false)
+    expect(schemas.statement.safeParse({ statement: 'word '.repeat(29) }).success).toBe(false)
+    expect(schemas.statement.safeParse({ statement: 'word '.repeat(30) }).success).toBe(true)
+    expect(schemas.statement.safeParse({ statement: 'word '.repeat(401) }).success).toBe(false)
     expect(schemas.statement.safeParse({ statement: 'word '.repeat(150) }).success).toBe(true)
   })
   it('validates personal details and normalises phone', () => {
-    const r = schemas.personal.safeParse({ title: 'Mrs', surname: 'Bello', first_name: 'Amina', sex: 'female', dob: '1985-04-12', phone: '0803 000 0000', state_id: '35', lga_id: '1006', address: 'Mile Six, Jalingo', nin: '' })
+    const r = schemas.personal.safeParse({ title: 'Mrs', surname: 'Bello', first_name: 'Amina', sex: 'female', dob: '1985-04-12', phone: '0803 000 0000', state_id: '35', lga_id: '1006', address: 'Mile Six, Jalingo' })
     expect(r.success).toBe(true)
     if (r.success) expect(r.data.phone).toBe('+2348030000000')
     expect(schemas.personal.safeParse({ title: 'Mr', surname: 'X', first_name: 'Y', sex: 'male', dob: '2020-01-01', phone: '1', state_id: '', lga_id: '', address: '' }).success).toBe(false)

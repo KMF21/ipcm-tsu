@@ -29,6 +29,25 @@ async function compressPhoto(file: File): Promise<File> {
   return file
 }
 
+/** Shrinks large phone photos of documents (e.g. a 5 MB camera picture) so they upload on slow networks. */
+async function compressDocumentImage(file: File): Promise<File> {
+  if (file.size <= 900 * 1024) return file
+  const bitmap = await createImageBitmap(file)
+  const scale = Math.min(1, 2000 / Math.max(bitmap.width, bitmap.height))
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.round(bitmap.width * scale)
+  canvas.height = Math.round(bitmap.height * scale)
+  const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+  for (const q of [0.82, 0.72, 0.62]) {
+    const blob: Blob = await new Promise((r) => canvas.toBlob((b) => r(b!), 'image/jpeg', q))
+    if (blob.size <= 1.5 * 1024 * 1024 || q === 0.62) return new File([blob], file.name.replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' })
+  }
+  return file
+}
+
 function UploadButton() {
   const { pending } = useFormStatus()
   return (
@@ -53,10 +72,12 @@ function DocUploader({ type, docs, required }: { type: DocType; docs: MyDocument
   async function onPick(f: File | undefined) {
     if (!f) return
     let file = f
-    if (type === 'passport_photo' && f.type.startsWith('image/')) {
+    if (f.type.startsWith('image/')) {
       setBusy(true)
       try {
-        file = await compressPhoto(f)
+        file = type === 'passport_photo' ? await compressPhoto(f) : await compressDocumentImage(f)
+      } catch {
+        // Older phones may not support resizing; send the original and let the size check speak.
       } finally {
         setBusy(false)
       }

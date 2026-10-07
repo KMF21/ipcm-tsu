@@ -61,7 +61,7 @@ const detail: ApplicationDetail = {
   status: 'under_review',
   step_data: {
     completed: [1, 2, 3, 4, 5, 6, 7],
-    personal: { title: 'Mr', first_name: 'Tersoo', surname: 'Akaa', other_names: 'Joseph', sex: 'male', dob: '1988-04-12', phone: '+2348031234567', state_id: 35, lga_id: 1006, address: 'No. 14 Hammaruwa Way, Jalingo', nin: '12345678901' },
+    personal: { title: 'Mr', first_name: 'Tersoo', surname: 'Akaa', other_names: 'Joseph', sex: 'male', dob: '1988-04-12', phone: '+2348031234567', state_id: 35, lga_id: 1006, address: 'No. 14 Hammaruwa Way, Jalingo' },
     professional: { employment_status: 'employed', sector: 'ngo', organisation: 'Peace Initiative Network', job_role: 'Programme Officer', years_experience: 6 },
     qualifications: { highest_qualification: 'B.Sc. Sociology', institution: 'Taraba State University', year: 2012, olevel_type: 'WAEC', olevel_year: 2006, is_mature_entry: false },
     sponsorship: { sponsored: 'no' },
@@ -78,7 +78,7 @@ const detail: ApplicationDetail = {
   user_id: 'u',
   programmes: { code: 'NMA', title: 'Certificate in Negotiation, Mediation and Alternative Dispute Resolution', short_title: 'Negotiation, Mediation and ADR' },
   cohorts: { id: 'c', name: 'February 2027 cohort', start_date: '2027-02-06', capacity: 40, offer_expiry_days: 30 },
-  profiles: { title: 'Mr', first_name: 'Tersoo', other_names: 'Joseph', surname: 'Akaa', email: 'tersoo.a@example.com', phone: '+2348031234567', sex: 'male', dob: '1988-04-12', address: 'No. 14 Hammaruwa Way, Jalingo', nin: '12345678901', organisation: 'Peace Initiative Network', job_role: 'Programme Officer', lgas: { name: 'Jalingo', states: { name: 'Taraba' } } },
+  profiles: { title: 'Mr', first_name: 'Tersoo', other_names: 'Joseph', surname: 'Akaa', email: 'tersoo.a@example.com', phone: '+2348031234567', sex: 'male', dob: '1988-04-12', address: 'No. 14 Hammaruwa Way, Jalingo', organisation: 'Peace Initiative Network', job_role: 'Programme Officer', lgas: { name: 'Jalingo', states: { name: 'Taraba' } } },
   documents: [],
   application_status_history: [
     { id: 3, from_status: 'submitted', to_status: 'under_review', note: 'Review started', created_at: ago(1), profiles: { first_name: 'Ruth', surname: 'Ishaku', role: 'admissions' } },
@@ -101,7 +101,7 @@ const decision = (status: string): DecisionInfo => ({
 
 const cohorts: CohortRow[] = ['PCM', 'NMA', 'CEW'].map((code, i) => ({
   id: `c${i}`, name: 'February 2027 cohort', start_date: '2027-02-06', end_date: '2027-03-27', application_deadline: '2027-01-31',
-  capacity: 40, offer_expiry_days: 30, venue: 'IPCM Lecture Hall, Taraba State University, Jalingo', status: i === 2 ? 'draft' : 'open',
+  capacity: 40, offer_expiry_days: 30, venue: 'IPCM Lecture Hall, Taraba State University, Jalingo', status: i === 2 ? 'draft' : 'open', accept_late: i === 1, attendance_mode: i === 0 ? 'info' : 'off', min_attendance_pct: null,
   programme_id: `p${i}`, programmes: { code, short_title: programmes.find((p) => p.code === code)?.shortTitle ?? '' },
   seats: { admitted: [18, 4, 0][i], offers_open: [9, 3, 0][i], under_review: [6, 5, 0][i], seats_taken: [27, 7, 0][i] },
 }))

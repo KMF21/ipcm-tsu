@@ -15,7 +15,7 @@ const lagosDate = (d: Date) => d.toLocaleDateString('en-CA', { timeZone: 'Africa
 
 export default async function ReviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const { supabase } = await requireStaff(can.review)
+  const { supabase, staff } = await requireStaff(can.review)
   const detail = await getApplicationDetail(supabase, id)
   if (!detail) notFound()
   const { app, links } = detail
@@ -58,6 +58,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
     decisionReason: app.status === 'declined' ? app.decision_reason : withdrawn?.note,
     regNo: (enrolment as { reg_no?: string } | null)?.reg_no ?? null,
     seats: app.cohorts && mySeats ? { taken: mySeats.seats_taken, capacity: app.cohorts.capacity } : undefined,
+    canOverrideCapacity: can.manageIntakes(staff.role),
   }
 
   return <ApplicationReview app={app} docs={docs} decision={decision} photoUrl={photo ? links[photo.storage_path] : undefined} />

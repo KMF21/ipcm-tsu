@@ -6,7 +6,8 @@ import { DocumentReview, type ReviewDoc } from './DocumentReview'
 import { DecisionPanel, type DecisionInfo } from './DecisionPanel'
 import type { ApplicationDetail } from '@/lib/admin/queries'
 import { appStatus } from '@/lib/admin/status'
-import { EMPLOYMENT, SECTORS, type StepData } from '@/lib/application/steps'
+import { DOC_RULES, EMPLOYMENT, SECTORS, ageOn, requiredDocs, type DocType, type StepData } from '@/lib/application/steps'
+import { Alert } from '@/components/ui'
 import { formatDate } from '@/lib/utils'
 import { formatDateTime } from '@/lib/receipts/types'
 import { ROLE_LABEL, type Role } from '@/lib/admin/roles'
@@ -40,6 +41,13 @@ export function ApplicationReview({ app, docs, decision, photoUrl }: { app: Appl
   const person = app.profiles
   const name = p ? [p.title, p.first_name, p.other_names, p.surname].filter(Boolean).join(' ') : personName(person)
   const editable = ['submitted', 'under_review', 'changes_requested'].includes(app.status)
+  // Rules that no longer block applicants are flagged here for admissions to judge.
+  const flags: string[] = []
+  const have = new Set(app.documents.map((x) => x.type))
+  const missing = requiredDocs(d).filter((t) => !have.has(t))
+  if (missing.length) flags.push(`Not uploaded: ${missing.map((t) => DOC_RULES[t as DocType].label).join(', ')}.`)
+  if (q?.is_mature_entry && p?.dob && ageOn(p.dob) < 25) flags.push(`Applied as a mature entrant but is ${ageOn(p.dob)} (mature entry is usually 25+).`)
+  if (q && !q.is_mature_entry && q.olevel_type === 'None') flags.push('Has no O’Level result and did not apply as a mature entrant.')
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -69,6 +77,15 @@ export function ApplicationReview({ app, docs, decision, photoUrl }: { app: Appl
         </div>
       </header>
 
+      {flags.length > 0 && editable && (
+        <div className="mt-4">
+          <Alert tone="warning" title="Things to check">
+            <ul className="list-disc space-y-1 pl-5">{flags.map((f) => <li key={f}>{f}</li>)}</ul>
+            <p className="mt-2">These don’t stop you making an offer. Use your judgement, or ask the applicant.</p>
+          </Alert>
+        </div>
+      )}
+
       <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="order-2 min-w-0 space-y-6 lg:order-1">
           <section aria-labelledby="docs-h" className="space-y-3">
@@ -82,9 +99,8 @@ export function ApplicationReview({ app, docs, decision, photoUrl }: { app: Appl
             <Row label="Full name" value={name} />
             <Row label="Sex" value={p?.sex === 'female' ? 'Female' : p?.sex === 'male' ? 'Male' : ''} />
             <Row label="Date of birth" value={p?.dob ? formatDate(p.dob) : ''} />
-            <Row label="State and LGA" value={person?.lgas ? `${person.lgas.name}, ${person.lgas.states?.name ?? ''}` : ''} />
+            <Row label="State and LGA" value={person?.lgas ? `${person.lgas.name}, ${person.lgas.states?.name ?? ''}` : p ? 'Outside Nigeria' : ''} />
             <Row label="Address" value={p?.address} />
-            <Row label="NIN" value={p?.nin} />
           </Section>
           <Section title="Work and experience">
             <Row label="Status" value={label(EMPLOYMENT, w?.employment_status)} />

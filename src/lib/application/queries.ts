@@ -33,9 +33,10 @@ export async function getOpenCohorts(supabase: SupabaseClient): Promise<OpenCoho
   const today = new Date().toISOString().slice(0, 10)
   const { data } = await supabase
     .from('cohorts')
-    .select('id, name, start_date, end_date, application_deadline, capacity, programmes!inner(code)')
+    .select('id, name, start_date, end_date, application_deadline, capacity, accept_late, programmes!inner(code)')
     .eq('status', 'open')
-    .gte('application_deadline', today)
+    // Past the deadline only if the Director has switched on late applications for that intake.
+    .or(`application_deadline.gte.${today},accept_late.eq.true`)
     .order('start_date')
   return (data ?? []).map((c) => ({ ...c, programme_code: (c.programmes as unknown as { code: string }).code })) as OpenCohort[]
 }

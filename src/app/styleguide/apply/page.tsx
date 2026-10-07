@@ -21,7 +21,7 @@ export default async function WizardPreview({ searchParams }: { searchParams: Pr
     3: <ProfessionalStep profile={{}} />,
     4: <QualificationsStep />,
     5: <SponsorshipStep />,
-    6: <DocumentsStep required={['passport_photo', 'qualification', 'identification']} optional={[]} documents={[{ id: 'x', type: 'qualification', mime: 'application/pdf', size_bytes: 412000, status: 'pending', rejection_reason: null, created_at: '', storage_path: '' }]} />,
+    6: <DocumentsStep required={['passport_photo', 'qualification']} optional={['identification']} documents={[{ id: 'x', type: 'qualification', mime: 'application/pdf', size_bytes: 412000, status: 'pending', rejection_reason: null, created_at: '', storage_path: '' }]} />,
     7: <StatementStep />,
     8: <DeclarationForm />,
   }[step]

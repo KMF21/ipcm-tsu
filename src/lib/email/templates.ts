@@ -202,7 +202,7 @@ export function admitted(ctx: EmailContext, d: { firstName: string; regNo: strin
     blocks: [
       { p: `Your tuition has been received and your admission to the <strong>${esc(d.programme)}</strong> is confirmed. Your <strong>admission letter</strong> and <strong>payment receipt</strong> are attached.` },
       { rows: [['Registration number', d.regNo], ['Intake', d.cohort], ['First class', d.startDate], ['Venue', d.venue], ['Receipt', `${d.receiptNo} (${naira(d.amountKobo)})`]] },
-      { p: 'Bring your admission letter (printed or on your phone) and a valid ID on the first day. Your timetable and course materials will appear in your portal before classes begin.' },
+      { p: 'Bring your admission letter (printed or on your phone) and a valid ID on the first day. Class details and your class group link will appear in your portal before classes begin.' },
       { button: { label: 'Open my portal', url: `${ctx.baseUrl}/portal` } },
     ],
     signoff: 'With best wishes,<br>Admissions Office',

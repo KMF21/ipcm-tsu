@@ -75,7 +75,7 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
 
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard icon={<BookOpen className="h-6 w-6" />} value={String(p.modules.length)} label="Modules" hint="Plus a capstone project" />
-        <StatCard icon={<ClipboardCheck className="h-6 w-6" />} value={att.pct === null ? '—' : `${att.pct}%`} label="Attendance" tone={att.pct !== null && att.pct < 75 ? 'amber' : 'success'} hint="You need at least 75%" />
+        <StatCard icon={<ClipboardCheck className="h-6 w-6" />} value={att.pct === null ? '—' : `${att.pct}%`} label="Attendance" tone="success" hint="If your intake records it" />
         <StatCard icon={<CalendarCheck2 className="h-6 w-6" />} value={`${att.held}/${sessions.length || FORMAT.durationWeeks}`} label="Sessions held" tone="navy" />
         <StatCard icon={<Wallet className="h-6 w-6" />} value="₦0" label="Balance due" tone="success" hint="Tuition paid" />
       </div>

@@ -21,7 +21,7 @@ export default async function AttendancePage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PortalHeader title="Attendance" intro="You need at least 75% attendance to receive the certificate. Facilitators mark attendance at each session." />
+      <PortalHeader title="Attendance" intro="Your attendance, if your intake records it. The Institute tells you at the start whether attendance is required." />
       {a.held === 0 ? (
         <EmptyState illustration title="No sessions held yet" body="Your attendance appears here after the first class." />
       ) : (
@@ -29,8 +29,7 @@ export default async function AttendancePage() {
           <div className="rounded-card border border-line bg-white p-6 shadow-card">
             <p className="font-display text-stat font-bold text-navy">{a.pct}%</p>
             <p className="text-base text-ink-muted">{a.attended} of {a.held} sessions attended</p>
-            <div className="mt-4"><ProgressBar value={a.pct ?? 0} label="Attendance" tone={(a.pct ?? 0) >= 75 ? 'success' : 'amber'} /></div>
-            {(a.pct ?? 0) < 75 && <p className="mt-3 text-base font-semibold text-amber">Below 75%. Speak to your facilitator about catching up.</p>}
+            <div className="mt-4"><ProgressBar value={a.pct ?? 0} label="Attendance" tone="success" /></div>
           </div>
           <ul className="mt-6 divide-y divide-line rounded-card border border-line bg-white">
             {held.map((s) => {
