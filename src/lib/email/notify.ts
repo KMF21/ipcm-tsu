@@ -177,3 +177,40 @@ export async function notifyClass(ctx: Ctx, cohortId: string, what: { kind: 'ann
     console.error('[email] notifyClass', err)
   }
 }
+
+/** Tells each student their certificate has been issued. */
+export async function notifyCertificatesIssued(ctx: Ctx, certIds: string[]) {
+  try {
+    if (!certIds.length) return
+    const admin = createAdminClient()
+    const { data } = await admin
+      .from('certificates')
+      .select('id, certificate_no, programme_title, enrolments!inner(user_id, application_id, profiles!enrolments_user_id_fkey(first_name, email))')
+      .in('id', certIds)
+    type Row = { id: string; certificate_no: string; programme_title: string; enrolments: { user_id: string; application_id: string; profiles: { first_name: string | null; email: string } | null } }
+    for (const c of (data ?? []) as unknown as Row[]) {
+      const p = c.enrolments.profiles
+      if (!p?.email) continue
+      await sendEmail({ ...T.certificateReady(ctx, { firstName: p.first_name ?? '', programme: c.programme_title, certificateNo: c.certificate_no }), to: p.email, kind: 'certificate', userId: c.enrolments.user_id, applicationId: c.enrolments.application_id, dedupeKey: `cert:${c.id}` })
+    }
+  } catch (err) {
+    console.error('[email] notifyCertificatesIssued', err)
+  }
+}
+
+/** Reports a certificate action to every active Director. Called only when the actor isn't a Director. */
+export async function notifyDirectorOfCertificates(ctx: Ctx, d: { actor: string; action: string; cohortId: string; items: string[] }) {
+  try {
+    const admin = createAdminClient()
+    const [{ data: directors }, { data: c }] = await Promise.all([
+      admin.from('profiles').select('email').eq('role', 'director').eq('is_active', true),
+      admin.from('cohorts').select('name').eq('id', d.cohortId).maybeSingle(),
+    ])
+    const link = `${ctx.baseUrl}/admin/classes/${d.cohortId}?tab=certificates`
+    for (const p of (directors ?? []) as { email: string }[]) {
+      await sendEmail({ ...T.certificateActivity(ctx, { actor: d.actor, action: d.action, intake: c?.name ?? 'an intake', items: d.items, link }), to: p.email, kind: 'certificate_activity' })
+    }
+  } catch (err) {
+    console.error('[email] notifyDirectorOfCertificates', err)
+  }
+}

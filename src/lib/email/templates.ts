@@ -282,3 +282,35 @@ export function classAnnouncement(ctx: EmailContext, d: { firstName: string; pro
     signoff: 'Institute of Peace and Conflict Management',
   }) }
 }
+
+export function certificateReady(ctx: EmailContext, d: { firstName: string; programme: string; certificateNo: string }): Email {
+  return { subject: 'Your certificate has been issued', ...render(ctx, {
+    preheader: `Certificate ${d.certificateNo} is on record.`,
+    heading: 'Your certificate has been issued',
+    greeting: `Dear ${d.firstName || 'Student'},`,
+    blocks: [
+      { p: `Your certificate for the <strong>${esc(d.programme)}</strong> has been issued and recorded by the Institute.` },
+      { rows: [['Certificate number', d.certificateNo]] },
+      { p: 'The Institute will tell you when and where to collect it. Please bring a valid means of identification. If someone collects it for you, they need a signed note from you and their own identification.' },
+      { p: 'Anyone can check your certificate is genuine by scanning its QR code or entering the number on our verification page. You can also download your statement of result from your portal.' },
+      { button: { label: 'Open my results', url: `${ctx.baseUrl}/portal/results` } },
+    ],
+  }) }
+}
+
+/** Sent to the Director when someone else issues, prints, revokes or records collection of certificates. */
+export function certificateActivity(ctx: EmailContext, d: { actor: string; action: string; intake: string; items: string[]; link: string }): Email {
+  return { subject: `Certificates: ${d.action} by ${d.actor}`, ...render(ctx, {
+    preheader: `${d.actor} ${d.action.toLowerCase()} for ${d.intake}.`,
+    heading: `Certificates ${d.action.toLowerCase()}`,
+    greeting: 'Dear Director,',
+    blocks: [
+      { p: `<strong>${esc(d.actor)}</strong> ${esc(d.action.toLowerCase())} for <strong>${esc(d.intake)}</strong>.` },
+      { list: d.items.slice(0, 30).map(esc) },
+      ...(d.items.length > 30 ? [{ p: `And ${d.items.length - 30} more.` } as Block] : []),
+      { note: 'You receive this because certificate actions by anyone other than the Director are always reported to you. If you did not expect it, review the intake now.', tone: 'info' },
+      { button: { label: 'Review certificates', url: d.link } },
+    ],
+    signoff: 'IPCM portal',
+  }) }
+}

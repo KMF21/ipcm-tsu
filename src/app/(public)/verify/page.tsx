@@ -34,10 +34,10 @@ export default async function VerifyPage({ searchParams }: { searchParams: Promi
                 <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-50 text-teal"><Award className="h-6 w-6" aria-hidden /></span>
                 <h2 className="text-[1.375rem] font-semibold leading-8 sm:text-h3">Verify a certificate</h2>
               </div>
-              <p className="mt-3 text-base text-ink-muted">Enter the certificate number printed on the certificate, for example IPCM-CERT-2027-0042.</p>
+              <p className="mt-3 text-base text-ink-muted">Scan the QR code on the certificate with any phone camera for the fullest check, including the holder’s photograph. Or enter the certificate number, for example IPCM-PCM-2027-0042.</p>
               <form method="get" action="/verify" className="mt-5 flex flex-col gap-3 sm:flex-row" role="search">
                 <label htmlFor="cert-no" className="sr-only">Certificate number</label>
-                <Input id="cert-no" name="no" defaultValue={raw} placeholder="IPCM-CERT-2027-0042" autoCapitalize="characters" spellCheck={false} className="font-mono uppercase sm:flex-1" required />
+                <Input id="cert-no" name="no" defaultValue={raw} placeholder="IPCM-PCM-2027-0042" autoCapitalize="characters" spellCheck={false} className="font-mono uppercase sm:flex-1" required />
                 <Button type="submit" size="lg"><Search className="h-5 w-5" aria-hidden /> Check</Button>
               </form>
 
@@ -61,7 +61,7 @@ export default async function VerifyPage({ searchParams }: { searchParams: Promi
                       <ShieldX className="h-8 w-8 shrink-0 text-crimson" aria-hidden />
                       <div>
                         <p className="text-lg font-bold text-crimson">{result ? 'Certificate revoked' : 'No certificate found'}</p>
-                        <p className="text-base text-ink">{result ? 'This certificate was issued but has since been withdrawn by the University.' : `We have no certificate numbered “${no}”. Check the number and try again. If it still doesn’t match, the certificate may not be genuine; contact ${site.email.value}.`}</p>
+                        <p className="text-base text-ink">{result ? 'This certificate was issued but has since been withdrawn by the Institute. If the holder has a newer certificate, check that number instead.' : `We have no certificate numbered “${no}”. Check the number and try again. If it still doesn’t match, the certificate may not be genuine; contact ${site.email.value}.`}</p>
                       </div>
                     </div>
                   )}

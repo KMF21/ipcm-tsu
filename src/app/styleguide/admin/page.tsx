@@ -13,6 +13,8 @@ import { RecordPaymentForm } from '@/components/admin/RecordPaymentForm'
 import { Card } from '@/components/ui'
 import { AnnouncementForm, AttendanceForm, ClassSettingsForm, ResultsActions, ScoreRow } from '@/components/admin/ClassForms'
 import type { ClassModule, ClassStudent } from '@/lib/admin/classes'
+import { CollectionForm, IssueForm, RevokeForm } from '@/components/admin/CertificateForms'
+import { Badge } from '@/components/ui'
 import type { ReviewDoc } from '@/components/admin/DocumentReview'
 import type { DecisionInfo } from '@/components/admin/DecisionPanel'
 import type { ApplicationDetail, ApplicationRow, CohortRow, FeeRow, PaymentListRow, PersonRow } from '@/lib/admin/queries'
@@ -139,6 +141,29 @@ export default async function AdminPreview({ searchParams }: { searchParams: Pro
         <Card className="p-0"><h2 className="px-4 pt-5 text-h3 font-semibold">Scores</h2><ul className="divide-y divide-line">{studs.slice(0, 3).map((st, i) => <ScoreRow key={st.id} cohortId={cid} student={st} modules={mods} values={i === 0 ? { [mods[0].id]: 72, [mods[1].id]: 65, capstone: 80 } : {}} locked={false} />)}</ul></Card>
         <Card><h2 className="mb-4 text-h3 font-semibold">Results</h2><ResultsActions cohortId={cid} published={false} hasResults /></Card>
         <Card><h2 className="mb-4 text-h3 font-semibold">New announcement</h2><AnnouncementForm cohortId={cid} /></Card>
+      </div>
+    )
+  }
+  else if (view === 'certificates') {
+    const cid = '20000000-0000-0000-0000-000000000000'
+    body = (
+      <div className="mx-auto max-w-5xl space-y-6">
+        <PageHeader eyebrow="Classes" title="PCM · February 2027 cohort" />
+        <Card><h2 className="mb-3 text-h3 font-semibold">Issue certificates</h2><IssueForm cohortId={cid} count={23} /></Card>
+        <ul className="space-y-3">
+          <li className="rounded-card border border-line bg-white p-4 shadow-card sm:p-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div><p className="font-semibold text-navy">Halima Nafisatu Danjuma-Abubakar</p><p className="text-sm text-ink-muted">TSU/IPCM/PCM/2027/0042</p></div>
+              <div className="flex flex-wrap gap-2"><Badge tone="navy">Distinction</Badge><Badge tone="success">Certificate issued</Badge></div>
+            </div>
+            <dl className="mt-4 grid gap-3 text-base sm:grid-cols-3">
+              <div><dt className="text-sm text-ink-muted">Number</dt><dd className="break-all font-mono font-semibold">IPCM-PCM-2027-0042</dd></div>
+              <div><dt className="text-sm text-ink-muted">Printed</dt><dd className="font-semibold">1 time, last 8 Oct 2026</dd></div>
+              <div><dt className="text-sm text-ink-muted">Collected</dt><dd className="font-semibold">Not yet</dd></div>
+            </dl>
+            <div className="mt-3 grid gap-3 lg:grid-cols-2"><CollectionForm cohortId={cid} certificateId={cid} defaultName="Halima Danjuma" /><RevokeForm cohortId={cid} certificateId={cid} certificateNo="IPCM-PCM-2027-0042" /></div>
+          </li>
+        </ul>
       </div>
     )
   }

@@ -157,29 +157,30 @@ export function ScoreRow({ cohortId, student, modules, values, locked }: { cohor
 }
 
 /* ---------- Results ---------- */
-export function ResultsActions({ cohortId, published, hasResults }: { cohortId: string; published: boolean; hasResults: boolean }) {
+export function ResultsActions({ cohortId, published, hasResults, certificatesIssued = false }: { cohortId: string; published: boolean; hasResults: boolean; certificatesIssued?: boolean }) {
   const [cs, compute] = useActionState<ActionState, FormData>(computeResults, {})
   const [ps, publish] = useActionState<ActionState, FormData>(publishResults, {})
   return (
     <div className="space-y-3">
       <Result s={ps.ok || ps.error ? ps : cs} />
-      <div className="flex flex-col gap-3 sm:flex-row">
-        {!published && (
-          <form action={compute}><input type="hidden" name="cohort_id" value={cohortId} /><Submit variant="secondary" size="lg">Calculate results</Submit></form>
-        )}
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <form action={compute}><input type="hidden" name="cohort_id" value={cohortId} /><Submit variant="secondary" size="lg" className="w-full sm:w-auto">{published ? 'Recalculate after a correction' : 'Calculate results'}</Submit></form>
         {!published && hasResults && (
           <form action={publish} onSubmit={(e) => { if (!confirm('Publish results? Students will see them and be emailed.')) e.preventDefault() }}>
             <input type="hidden" name="cohort_id" value={cohortId} /><input type="hidden" name="publish" value="yes" />
-            <Submit size="lg">Publish results</Submit>
+            <Submit size="lg" className="w-full sm:w-auto">Publish results</Submit>
           </form>
         )}
-        {published && (
+        {published && !certificatesIssued && (
           <form action={publish} onSubmit={(e) => { if (!confirm('Hide results from students so scores can be corrected?')) e.preventDefault() }}>
             <input type="hidden" name="cohort_id" value={cohortId} /><input type="hidden" name="publish" value="no" />
-            <Submit variant="ghost" size="lg">Unpublish to make corrections</Submit>
+            <Submit variant="ghost" size="lg" className="w-full sm:w-auto">Unpublish to make corrections</Submit>
           </form>
         )}
       </div>
+      {published && certificatesIssued && (
+        <p className="text-base text-ink-muted">Certificates have been issued, so results stay published. To correct a result: change the score, recalculate, then revoke and reissue that student’s certificate under Certificates.</p>
+      )}
     </div>
   )
 }

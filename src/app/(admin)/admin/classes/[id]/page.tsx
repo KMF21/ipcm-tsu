@@ -1,10 +1,12 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ExternalLink, Mail, Phone, Trash2, UserMinus, UserPlus } from 'lucide-react'
-import { Alert, Badge, Button, Card, EmptyState, Select } from '@/components/ui'
+import { ArrowLeft, Download, ExternalLink, FileSpreadsheet, FileText, Mail, Phone, Trash2, UserMinus, UserPlus } from 'lucide-react'
+import { Alert, Badge, Button, Card, EmptyState, Select, buttonClass } from '@/components/ui'
 import { PageHeader, Tabs } from '@/components/admin/bits'
 import { AnnouncementForm, AttendanceForm, ClassSettingsForm, ResultsActions, ScoreRow, SessionForm } from '@/components/admin/ClassForms'
+import { CollectionForm, IssueForm, RevokeForm, UndoCollectionForm } from '@/components/admin/CertificateForms'
 import { canSeeClass, getClass } from '@/lib/admin/classes'
+import { listCohortCertificates } from '@/lib/certificates/queries'
 import { deleteAnnouncement, deleteSession, setFacilitator, setWaiver } from '@/lib/admin/class-actions'
 import { can } from '@/lib/admin/roles'
 import { requireStaff } from '@/lib/admin/session'
@@ -14,7 +16,7 @@ import { formatDate } from '@/lib/utils'
 export const metadata = { title: 'Class' }
 
 const lagos = (iso: string, o: Intl.DateTimeFormatOptions) => new Date(iso).toLocaleString('en-GB', { timeZone: 'Africa/Lagos', ...o })
-const TABS = ['overview', 'timetable', 'attendance', 'scores', 'results', 'announcements'] as const
+const TABS = ['overview', 'timetable', 'attendance', 'scores', 'results', 'certificates', 'announcements'] as const
 
 export default async function ClassPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string; session?: string }> }) {
   const { id } = await params
@@ -24,10 +26,13 @@ export default async function ClassPage({ params, searchParams }: { params: Prom
   const k = await getClass(supabase, id)
   if (!k) notFound()
   const director = can.runClasses(staff.role)
-  const tab = (TABS as readonly string[]).includes(sp.tab ?? '') ? sp.tab! : 'overview'
+  const requested = (TABS as readonly string[]).includes(sp.tab ?? '') ? sp.tab! : 'overview'
+  const tab = requested === 'certificates' && !director ? 'overview' : requested
   const c = k.cohort
   const published = k.results.some((r) => r.published_at)
   const base = `/admin/classes/${id}`
+  const certs = director && (tab === 'results' || tab === 'certificates') ? await listCohortCertificates(supabase, id) : []
+  const validCerts = certs.filter((x) => !x.revoked_at)
   const scoreOf = (e: string, comp: string, mod: string | null = null) => k.scores.find((x) => x.enrolment_id === e && x.component === comp && x.module_id === mod)?.score
 
   let body: React.ReactNode = null
@@ -157,7 +162,7 @@ export default async function ClassPage({ params, searchParams }: { params: Prom
             ? `Attendance 20%, modules 30%, capstone 50%, with at least ${c.min_attendance_pct ?? 0}% attendance unless waived. Pass at 50%, Distinction at 70%.`
             : 'Modules 37.5% and capstone 62.5% (attendance doesn’t count for this class). Pass at 50%, Distinction at 70%.'}
         </Alert>
-        {director ? <ResultsActions cohortId={id} published={published} hasResults={k.results.length > 0} /> : <p className="text-base text-ink-muted">The Director calculates and publishes results.</p>}
+        {director ? <ResultsActions cohortId={id} published={published} hasResults={k.results.length > 0} certificatesIssued={validCerts.length > 0} /> : <p className="text-base text-ink-muted">The Director calculates and publishes results.</p>}
         <div className="overflow-x-auto rounded-card border border-line bg-white shadow-card">
           <table className="w-full min-w-[640px] text-left text-base">
             <thead className="bg-canvas text-sm text-ink-muted">
@@ -191,6 +196,95 @@ export default async function ClassPage({ params, searchParams }: { params: Prom
         </div>
       </div>
     )
+  } else if (tab === 'certificates') {
+    const byE = new Map(k.results.map((r) => [r.enrolment_id, r]))
+    const passed = k.students.filter((s) => { const r = byE.get(s.id); return r?.published_at && r.classification && r.classification !== 'Fail' })
+    const eligible = passed.filter((s) => !validCerts.some((c) => c.enrolment_id === s.id))
+    const unprinted = validCerts.filter((c) => c.print_count === 0).length
+    const collected = validCerts.filter((c) => c.collected_at).length
+    const pdf = (q: string) => `/admin/certificates/pdf?cohort=${id}&${q}`
+    body = (
+      <div className="space-y-6">
+        <Alert tone="info" title="The website is the official register">
+          Certificates can only be issued to students whose results are published and who passed. The name, programme and result are frozen when issued, so the paper and the online check always match. Every print, collection and revocation is recorded.
+        </Alert>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {[['Passed', passed.length], ['Issued', validCerts.length], ['Not yet printed', unprinted], ['Collected', collected]].map(([l, v]) => (
+            <div key={l} className="rounded-card border border-line bg-white p-4 shadow-card"><p className="text-sm text-ink-muted">{l}</p><p className="font-display text-h3 font-bold text-navy">{v}</p></div>
+          ))}
+        </div>
+        {!published ? (
+          <p className="rounded-card border border-line bg-white p-5 text-base text-ink-muted">Publish results first. Certificates can then be issued to everyone who passed.</p>
+        ) : (
+          <Card className="space-y-5">
+            {eligible.length > 0 ? (
+              <div><h2 className="mb-3 text-h3 font-semibold">Issue certificates</h2><IssueForm cohortId={id} count={eligible.length} /></div>
+            ) : <p className="text-base text-ink-muted">Everyone who passed has a certificate.</p>}
+            {validCerts.length > 0 && (
+              <div>
+                <h2 className="text-h3 font-semibold">Print</h2>
+                <p className="mt-1 text-base text-ink-muted">Use “number and QR” to print onto the Institute’s own certificate paper, or download the complete certificate.</p>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                  {unprinted > 0 && <a href={pdf('only=new&mode=qr')} className={buttonClass('primary', 'md')}><Download className="h-5 w-5" aria-hidden /> Number and QR, {unprinted} new</a>}
+                  {unprinted > 0 && <a href={pdf('only=new&mode=full')} className={buttonClass('secondary', 'md')}><Download className="h-5 w-5" aria-hidden /> Full certificates, {unprinted} new</a>}
+                  <a href={`${base}/graduates`} className={buttonClass('ghost', 'md')}><FileSpreadsheet className="h-5 w-5" aria-hidden /> Graduates list (Excel)</a>
+                </div>
+                <p className="mt-3 text-sm text-ink-muted">Reprints are done per student below and are counted. Anyone other than the Director who prints, revokes or records collection triggers an email to the Director.</p>
+              </div>
+            )}
+          </Card>
+        )}
+        <ul className="space-y-3">
+          {k.students.map((s) => {
+            const r = byE.get(s.id)
+            const mine = certs.filter((c) => c.enrolment_id === s.id)
+            const cur = mine.find((c) => !c.revoked_at)
+            const old = mine.filter((c) => c.revoked_at)
+            const canIssue = !cur && eligible.some((e) => e.id === s.id)
+            return (
+              <li key={s.id} className="rounded-card border border-line bg-white p-4 shadow-card sm:p-5">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-navy">{s.name}</p>
+                    <p className="text-sm text-ink-muted">{s.reg_no}</p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {r?.published_at && r.classification ? <Badge tone={r.classification === 'Fail' ? 'crimson' : r.classification === 'Distinction' ? 'navy' : 'success'}>{r.classification}</Badge> : <Badge tone="neutral">No published result</Badge>}
+                    {cur && <Badge tone="success">Certificate issued</Badge>}
+                    {cur?.collected_at && <Badge tone="navy">Collected</Badge>}
+                  </div>
+                </div>
+                {cur && (
+                  <div className="mt-4 space-y-3">
+                    <dl className="grid gap-3 text-base sm:grid-cols-3">
+                      <div><dt className="text-sm text-ink-muted">Number</dt><dd className="break-all font-mono font-semibold text-ink">{cur.certificate_no}</dd></div>
+                      <div><dt className="text-sm text-ink-muted">Printed</dt><dd className="font-semibold text-ink">{cur.print_count === 0 ? 'Not yet' : `${cur.print_count} time${cur.print_count === 1 ? '' : 's'}, last ${formatDate(cur.last_printed_at!)}`}</dd></div>
+                      <div><dt className="text-sm text-ink-muted">Collected</dt><dd className="font-semibold text-ink">{cur.collected_at ? `${formatDate(cur.collected_at)} by ${cur.collected_by}${cur.collection_note ? ` (${cur.collection_note})` : ''}` : 'Not yet'}</dd></div>
+                    </dl>
+                    <div className="flex flex-wrap gap-x-5 gap-y-1">
+                      <a href={pdf(`cert=${cur.id}&mode=qr`)} className="inline-flex min-h-[44px] items-center gap-1.5 font-semibold text-teal hover:underline"><Download className="h-4 w-4" aria-hidden /> {cur.print_count ? 'Reprint' : 'Print'} number and QR</a>
+                      <a href={pdf(`cert=${cur.id}&mode=full`)} className="inline-flex min-h-[44px] items-center gap-1.5 font-semibold text-teal hover:underline"><Download className="h-4 w-4" aria-hidden /> {cur.print_count ? 'Reprint' : 'Print'} full certificate</a>
+                      <a href={`/admin/statements/${s.id}`} className="inline-flex min-h-[44px] items-center gap-1.5 font-semibold text-teal hover:underline"><FileText className="h-4 w-4" aria-hidden /> Statement of result</a>
+                      {cur.collected_at && <UndoCollectionForm cohortId={id} certificateId={cur.id} />}
+                    </div>
+                    <div className="grid gap-3 lg:grid-cols-2">
+                      {!cur.collected_at && <CollectionForm cohortId={id} certificateId={cur.id} defaultName={s.name} />}
+                      <RevokeForm cohortId={id} certificateId={cur.id} certificateNo={cur.certificate_no} />
+                    </div>
+                  </div>
+                )}
+                {canIssue && <div className="mt-4"><IssueForm cohortId={id} enrolmentId={s.id} name={s.name} /></div>}
+                {old.length > 0 && (
+                  <ul className="mt-3 space-y-1 text-sm text-ink-muted">
+                    {old.map((o) => <li key={o.id}>Revoked {o.certificate_no} on {formatDate(o.revoked_at!)}: {o.revoke_reason}</li>)}
+                  </ul>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+    )
   } else {
     body = (
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -222,6 +316,7 @@ export default async function ClassPage({ params, searchParams }: { params: Prom
         ...(c.attendance_mode !== 'off' ? [{ key: 'attendance', label: 'Attendance', href: `${base}?tab=attendance` }] : []),
         { key: 'scores', label: 'Scores', href: `${base}?tab=scores` },
         { key: 'results', label: 'Results', href: `${base}?tab=results` },
+        ...(director ? [{ key: 'certificates', label: 'Certificates', href: `${base}?tab=certificates` }] : []),
         { key: 'announcements', label: 'Announcements', href: `${base}?tab=announcements` },
       ]} />
       <div className="mt-6">{body}</div>

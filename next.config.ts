@@ -13,6 +13,10 @@ const nextConfig: NextConfig = {
     '/admin/applications/[id]/letter': ['./src/assets/**/*'],
     '/api/paystack/callback': ['./src/assets/**/*'],
     '/api/paystack/webhook': ['./src/assets/**/*'],
+    '/admin/certificates/pdf': ['./src/assets/**/*'],
+    '/admin/statements/[enrolment]': ['./src/assets/**/*'],
+    '/portal/results/statement': ['./src/assets/**/*'],
+    '/styleguide/certificate': ['./src/assets/**/*'],
   },
   images: {
     formats: ['image/avif', 'image/webp'],

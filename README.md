@@ -12,7 +12,7 @@ The full specification is the *IPCM-TSU Platform — Master Build Prompt*; conte
 | Accounts, application wizard, Paystack | Done (Phase 1) |
 | Admin review, offers, letters, receipts, emails | Done (Phase 1) |
 | Classes: scores, results, optional attendance and timetable, announcements, class links | Done (Phase 2) |
-| Certificates | Phase 3 (to be discussed) |
+| Certificates, statement of result, graduates list | Done (Phase 3) |
 
 ## Getting started
 
@@ -148,6 +148,34 @@ Migration `20261008000012_classes.sql` adds this. Run it after 009, 010 and 011.
 - **Scores.** Facilitators and the Director enter module and capstone scores (0–100). Once results are published only the Director can change scores, after unpublishing.
 - **Results (Director).** Calculate → check → Publish. Publishing marks students completed or failed and emails them. Unpublish to correct mistakes.
 - **Announcements.** Posted to one intake only, with an option to email the class.
+
+## Certificates (Phase 3, Classes → intake → Certificates)
+
+Migration `20261008000013_certificates.sql` adds this. Run it after 012.
+
+- **The website is the official register.** A certificate exists only if it is on record; anyone can check it by scanning its QR code (shows the holder's passport photo) or typing its number at `/verify`.
+- **Who.** The Director or a super admin issues in one step. Only students whose results are published and who passed can get one; nobody can override that.
+- **Frozen details.** Name, programme, intake and grade are copied onto the certificate when issued, so later edits never make the paper and the online check disagree.
+- **Printing.** *Number and QR* (default) prints only the certificate number and QR code, bottom-right of an A4 landscape page, onto the Institute's own pre-printed certificate paper. *Full certificate* prints the whole design (fine wave border, microtext, watermark). Every download is counted; reprints are marked.
+- **Collection.** Record who collected each certificate and what ID they showed.
+- **Mistakes.** Revoke with a reason (kept private), optionally issuing a replacement with a new number. The old QR then says it was replaced.
+- **Director emails.** Any issue, print, revoke or collection done by someone other than the Director emails every active Director. Everything is in the audit log.
+- **Results stay published once certificates are out.** To correct a result: change the score, recalculate, then revoke and reissue that certificate.
+- **Statement of result.** Students download it from Results once published; staff from the Certificates tab.
+- **Graduates list.** Excel (CSV) download per intake.
+- Specimen PDFs for design review: `/styleguide/certificate?kind=full|qr|statement` (disabled in production unless preview mode is on).
+
+## Launch checklist
+
+1. All migrations 001–013 run in order on the production database.
+2. Remove test accounts: run the cleanup block at the bottom of `supabase/test-users.sql`.
+3. Vercel: `NEXT_PUBLIC_PORTAL_PREVIEW=false`; `NEXT_PUBLIC_SITE_URL=https://ipcm.tsucpgs.com.ng`; `SUPABASE_SERVICE_ROLE_KEY`, `PAYSTACK_SECRET_KEY`, `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_REPLY_TO`, `CONTACT_INBOX`, `CRON_SECRET` set.
+4. Paystack: live keys, webhook URL `https://ipcm.tsucpgs.com.ng/api/paystack/webhook`.
+5. Resend: domain verified (DNS), a test email received.
+6. Real contact details, address and phone in `src/lib/site.ts`; real photos and the Director's bio under Website.
+7. Create real staff accounts (Staff accounts) and make sure the Institute holds its own super admin.
+8. Open an intake, set fees, and do one real ₦ payment end to end, then refund it in Paystack.
+9. Print one specimen certificate on the Institute's paper and adjust the QR position if needed.
 
 ## Admission letters
 
