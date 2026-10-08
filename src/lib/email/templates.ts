@@ -314,3 +314,17 @@ export function certificateActivity(ctx: EmailContext, d: { actor: string; actio
     signoff: 'IPCM portal',
   }) }
 }
+
+export function nameCorrected(ctx: EmailContext, d: { firstName: string; name: string }): Email {
+  return { subject: 'Your name has been corrected', ...render(ctx, {
+    preheader: 'The Institute has updated the name on your record.',
+    heading: 'Your name has been corrected',
+    greeting: `Dear ${d.firstName || 'Applicant'},`,
+    blocks: [
+      { p: 'The Institute has corrected the name on your record. It now reads:' },
+      { rows: [['Name', d.name]] },
+      { p: 'Your admission letter and statement of result now show this name. If it is still not right, reply to this email.' },
+      { button: { label: 'Open my portal', url: `${ctx.baseUrl}/portal` } },
+    ],
+  }) }
+}

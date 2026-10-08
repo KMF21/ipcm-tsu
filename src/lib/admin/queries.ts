@@ -217,6 +217,7 @@ export async function listFees(supabase: SupabaseClient) {
 
 export type PersonRow = {
   id: string
+  title: string | null
   first_name: string | null
   surname: string | null
   other_names: string | null
@@ -233,7 +234,7 @@ export async function findPeople(supabase: SupabaseClient, raw: string) {
   if (q.length < 2) return []
   let query = supabase
     .from('profiles')
-    .select('id, first_name, surname, other_names, email, phone, role, created_at, applications(id, ref, status, programmes(code))')
+    .select('id, title, first_name, surname, other_names, email, phone, role, created_at, applications(id, ref, status, programmes(code))')
     .in('role', ['applicant', 'student'])
   if (/^app-/i.test(q)) {
     const { data: a } = await supabase.from('applications').select('user_id').ilike('ref', `%${q}%`).limit(10)

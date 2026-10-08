@@ -214,3 +214,16 @@ export async function notifyDirectorOfCertificates(ctx: Ctx, d: { actor: string;
     console.error('[email] notifyDirectorOfCertificates', err)
   }
 }
+
+/** Tells the applicant or student that staff corrected their name. */
+export async function notifyNameCorrected(ctx: Ctx, userId: string) {
+  try {
+    const admin = createAdminClient()
+    const { data: p } = await admin.from('profiles').select('email, title, first_name, other_names, surname').eq('id', userId).single()
+    if (!p?.email) return
+    const name = [p.title, p.first_name, p.other_names, p.surname].filter(Boolean).join(' ')
+    await sendEmail({ ...T.nameCorrected(ctx, { firstName: p.first_name ?? '', name }), to: p.email, kind: 'name_corrected', userId })
+  } catch (err) {
+    console.error('[email] notifyNameCorrected', err)
+  }
+}

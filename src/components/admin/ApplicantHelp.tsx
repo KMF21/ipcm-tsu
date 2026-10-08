@@ -44,7 +44,7 @@ export function ApplicantHelp({ q, people, canOpenApplications }: { q: string; p
                 ))}
               </ul>
             )}
-            <div className="mt-4"><HelpActions userId={p.id} email={p.email} /></div>
+            <div className="mt-4"><HelpActions userId={p.id} email={p.email} person={p} /></div>
           </li>
         ))}
       </ul>

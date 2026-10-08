@@ -2,11 +2,14 @@
 
 import { randomInt } from 'node:crypto'
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireStaff } from './session'
 import { can } from './roles'
 import type { ActionState } from './actions'
+import { notifyNameCorrected } from '@/lib/email/notify'
+import { siteUrl } from '@/lib/site-url'
 
 export type HelpState = ActionState & { password?: string }
 
@@ -58,4 +61,26 @@ export async function setTemporaryPassword(_: HelpState, fd: FormData): Promise<
   }
   await audit(t.staff.id, 'help.password_reset', t.person.id, null, { by: t.staff.email })
   return { ok: true, password, message: 'New password set. Their old password no longer works.' }
+}
+
+export type NameState = ActionState & { certificates?: string[] }
+
+/** Corrects an applicant's or student's name (admissions, Director, super admin). Logged with the reason. */
+export async function correctName(_: NameState, fd: FormData): Promise<NameState> {
+  const t = await target(String(fd.get('user_id')))
+  if ('error' in t) return { error: t.error }
+  const { supabase } = await requireStaff(can.helpApplicants)
+  const s = (k: string) => String(fd.get(k) ?? '').trim()
+  const { data, error } = await supabase.rpc('staff_correct_name', {
+    p_user: t.person.id, p_title: s('title'), p_first: s('first_name'), p_other: s('other_names'), p_surname: s('surname'), p_reason: s('reason'),
+  })
+  if (error) {
+    console.error('[admin] correctName', error.message)
+    return { error: /Only|Not allowed|reason|first name|not found/i.test(error.message) ? error.message.replace(/^.*?ERROR:\s*/, '') : 'We couldn’t correct the name. Please try again.' }
+  }
+  const certificates = ((data as { certificates?: string[] } | null)?.certificates ?? [])
+  const baseUrl = await siteUrl()
+  after(() => notifyNameCorrected({ baseUrl }, t.person.id))
+  revalidatePath('/admin/help')
+  return { ok: true, certificates, message: 'Name corrected. They have been emailed, and new letters and statements use the new name.' }
 }

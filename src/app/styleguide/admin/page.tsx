@@ -113,7 +113,7 @@ const fees: FeeRow[] = programmes.slice(0, 3).flatMap((p, i) => [
   { id: `f${i}a`, type: 'application' as const, base_amount_kobo: 1500000, processing_fee_kobo: 30000, active: true, updated_at: ago(3), programmes: { code: p.code, short_title: p.shortTitle } },
   { id: `f${i}t`, type: 'tuition' as const, base_amount_kobo: 3500000, processing_fee_kobo: 30000, active: true, updated_at: ago(3), programmes: { code: p.code, short_title: p.shortTitle } },
 ])
-const found: PersonRow[] = [{ id: 'p1', first_name: 'Halima', surname: 'Danjuma', other_names: null, email: 'halima.d@exmaple.com', phone: '+2348061112222', role: 'applicant', created_at: ago(14), applications: [{ id: rows[2].id, ref: rows[2].ref, status: 'under_review', programmes: { code: 'CEW' } }] }]
+const found: PersonRow[] = [{ id: 'p1', title: 'Mrs', first_name: 'Halima', surname: 'Danjuma', other_names: null, email: 'halima.d@exmaple.com', phone: '+2348061112222', role: 'applicant', created_at: ago(14), applications: [{ id: rows[2].id, ref: rows[2].ref, status: 'under_review', programmes: { code: 'CEW' } }] }]
 
 export default async function AdminPreview({ searchParams }: { searchParams: Promise<{ view?: string; role?: Role }> }) {
   const { view = 'dashboard', role = 'super_admin' } = await searchParams

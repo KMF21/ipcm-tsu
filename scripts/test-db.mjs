@@ -343,5 +343,23 @@ await as(fac.id)
 check('others cannot load a statement', (await one(`select public.get_statement($1) s`, [enr.id]))[0].s === null)
 await as(null)
 
+// ---- Name correction by staff ----
+await as(null)
+await one(`update public.profiles set role='student' where id=$1`, [u.id])
+await as(u.id)
+await expectErr('student cannot correct own name after admission', `update public.profiles set surname='Belo' where id=$1`, [u.id], /correct your name/)
+await as(fac.id)
+await expectErr('facilitator cannot correct names', `select public.staff_correct_name($1,null,'Amina',null,'Bello-Musa','As on WAEC')`, [u.id], /Only admissions/)
+await as(director.id)
+await expectErr('name correction needs a reason', `select public.staff_correct_name($1,null,'Amina',null,'Bello-Musa','x')`, [u.id], /reason/)
+await expectErr('staff names are not changed here', `select public.staff_correct_name($1,null,'Grace',null,'Other','Typo in name')`, [director.id], /Staff accounts/)
+const nc2 = (await one(`select public.staff_correct_name($1,null,'Amina',null,'Bello-Musa','Spelling as on WAEC') r`, [u.id]))[0].r
+check('admissions/Director corrects a student name', (await one(`select surname from public.profiles where id=$1`, [u.id]))[0].surname === 'Bello-Musa')
+check('correction lists certificates to reissue', nc2.certificates.length === 1, JSON.stringify(nc2))
+check('issued certificate keeps its printed name', (await one(`select holder_name from public.certificates where enrolment_id=$1 and revoked_at is null`, [enr.id]))[0].holder_name === 'Amina Bello')
+check('name correction is logged with reason', (await one(`select after->>'reason' r from public.audit_log where action='help.name_corrected' order by id desc limit 1`))[0].r === 'Spelling as on WAEC')
+await expectErr('unchanged name is refused', `select public.staff_correct_name($1,null,'Amina',null,'Bello-Musa','Again same')`, [u.id], /unchanged/)
+await as(null)
+
 await db.close()
 if (failures) { console.log(`${failures} check(s) failed`); process.exit(1) } else console.log('All database checks passed')

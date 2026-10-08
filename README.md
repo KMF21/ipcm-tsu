@@ -165,9 +165,13 @@ Migration `20261008000013_certificates.sql` adds this. Run it after 012.
 - **Graduates list.** Excel (CSV) download per intake.
 - Specimen PDFs for design review: `/styleguide/certificate?kind=full|qr|statement` (disabled in production unless preview mode is on).
 
+## Name corrections (Applicant help → Correct name)
+
+Migration `20261008000014_name_correction.sql`. Admissions, the Director and super admins can correct an applicant's or student's name (title, first, other, surname) with a required reason. The old name, new name and reason go to the audit log, and the person is emailed. Admitted students can't change their own name. Certificates already issued keep the printed name; the screen lists them so the Director can revoke and reissue.
+
 ## Launch checklist
 
-1. All migrations 001–013 run in order on the production database.
+1. All migrations 001–014 run in order on the production database.
 2. Remove test accounts: run the cleanup block at the bottom of `supabase/test-users.sql`.
 3. Vercel: `NEXT_PUBLIC_PORTAL_PREVIEW=false`; `NEXT_PUBLIC_SITE_URL=https://ipcm.tsucpgs.com.ng`; `SUPABASE_SERVICE_ROLE_KEY`, `PAYSTACK_SECRET_KEY`, `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_REPLY_TO`, `CONTACT_INBOX`, `CRON_SECRET` set.
 4. Paystack: live keys, webhook URL `https://ipcm.tsucpgs.com.ng/api/paystack/webhook`.
