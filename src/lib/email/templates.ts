@@ -252,3 +252,33 @@ export function offerWithdrawn(ctx: EmailContext, d: { firstName: string; progra
     ],
   }) }
 }
+
+export function resultsPublished(ctx: EmailContext, d: { firstName: string; programme: string; classification: string }): Email {
+  const passed = d.classification !== 'Fail'
+  return { subject: passed ? `Your results: ${d.classification}` : 'Your results are available', ...render(ctx, {
+    preheader: 'Your results for the programme are now in your portal.',
+    heading: passed ? `Congratulations, you passed${d.classification === 'Distinction' ? ' with Distinction' : ''}` : 'Your results are available',
+    greeting: `Dear ${d.firstName || 'Student'},`,
+    blocks: [
+      { p: `Your results for the <strong>${esc(d.programme)}</strong> have been published.` },
+      ...(passed
+        ? [{ p: 'Your certificate will be issued by the University. We will let you know when it is ready.' } as Block]
+        : [{ p: 'You did not meet the requirements this time. Please contact the Institute to discuss your options, including joining a later intake.' } as Block]),
+      { button: { label: 'View my results', url: `${ctx.baseUrl}/portal/results` } },
+    ],
+  }) }
+}
+
+export function classAnnouncement(ctx: EmailContext, d: { firstName: string; programme: string; cohort: string; title: string; body: string }): Email {
+  return { subject: d.title, ...render(ctx, {
+    preheader: d.body.slice(0, 90),
+    heading: d.title,
+    greeting: `Dear ${d.firstName || 'Student'},`,
+    blocks: [
+      { note: esc(d.body).replace(/\n/g, '<br>') },
+      { p: `This message is for the ${esc(d.programme)}, ${esc(d.cohort)}.` },
+      { button: { label: 'Open my portal', url: `${ctx.baseUrl}/portal` } },
+    ],
+    signoff: 'Institute of Peace and Conflict Management',
+  }) }
+}

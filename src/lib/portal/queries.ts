@@ -8,7 +8,7 @@ export type MyEnrolment = {
   status: string
   admitted_at: string
   application_id: string
-  cohort: { id: string; name: string; start_date: string; end_date: string; venue: string | null }
+  cohort: { id: string; name: string; start_date: string; end_date: string; venue: string | null; class_group_url: string | null; materials_url: string | null; attendance_mode: 'off' | 'info' | 'required' }
   programme: (typeof programmes)[number]
 }
 
@@ -16,13 +16,13 @@ export type MyEnrolment = {
 export async function getMyEnrolment(supabase: SupabaseClient, userId: string): Promise<MyEnrolment | null> {
   const { data } = await supabase
     .from('enrolments')
-    .select('id, reg_no, status, admitted_at, application_id, cohorts(id, name, start_date, end_date, venue, programmes(code))')
+    .select('id, reg_no, status, admitted_at, application_id, cohorts(id, name, start_date, end_date, venue, class_group_url, materials_url, attendance_mode, programmes(code))')
     .eq('user_id', userId)
     .order('admitted_at', { ascending: false })
     .limit(1)
     .maybeSingle()
   if (!data) return null
-  const c = data.cohorts as unknown as { id: string; name: string; start_date: string; end_date: string; venue: string | null; programmes: { code: string } | null }
+  const c = data.cohorts as unknown as MyEnrolment['cohort'] & { programmes: { code: string } | null }
   const programme = programmes.find((p) => p.code === c.programmes?.code)
   if (!programme) return null
   return { id: data.id, reg_no: data.reg_no, status: data.status, admitted_at: data.admitted_at, application_id: data.application_id, cohort: c, programme }

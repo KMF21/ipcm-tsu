@@ -154,7 +154,7 @@ export function AdminDashboard({
           <Card className="lg:col-span-2">
             <div className="flex items-start gap-3">
               <ClipboardList className="mt-0.5 h-6 w-6 shrink-0 text-teal" aria-hidden />
-              <p className="text-base text-ink">Website editors can update the People and Research pages under Website. Teaching tools for facilitators arrive in the next phase.</p>
+              <p className="text-base text-ink">Website editors can update the People and Research pages under Website. Facilitators will find their intakes under Classes, where they can mark attendance, enter scores and post announcements.</p>
             </div>
           </Card>
         )}

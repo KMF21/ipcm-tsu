@@ -11,6 +11,8 @@ import { AddStaffForm, RoleGuide, StaffRowForm } from '@/components/admin/StaffM
 import { AddPanel, PeopleList, PersonForm } from '@/components/admin/WebsiteEditor'
 import { RecordPaymentForm } from '@/components/admin/RecordPaymentForm'
 import { Card } from '@/components/ui'
+import { AnnouncementForm, AttendanceForm, ClassSettingsForm, ResultsActions, ScoreRow } from '@/components/admin/ClassForms'
+import type { ClassModule, ClassStudent } from '@/lib/admin/classes'
 import type { ReviewDoc } from '@/components/admin/DocumentReview'
 import type { DecisionInfo } from '@/components/admin/DecisionPanel'
 import type { ApplicationDetail, ApplicationRow, CohortRow, FeeRow, PaymentListRow, PersonRow } from '@/lib/admin/queries'
@@ -124,6 +126,21 @@ export default async function AdminPreview({ searchParams }: { searchParams: Pro
   else if (view === 'review' || view === 'offer' || view === 'lapsed') {
     const status = view === 'review' ? 'under_review' : 'offered'
     body = <ApplicationReview app={{ ...detail, status, offer_expires_at: view === 'lapsed' ? ago(2) : view === 'offer' ? ahead(5) : null }} docs={docs} decision={{ ...decision(status), lapsed: view === 'lapsed' }} photoUrl="/placeholders/about.jpg" />
+  }
+  else if (view === 'class') {
+    const cid = '20000000-0000-0000-0000-000000000000'
+    const mods: ClassModule[] = [1, 2, 3, 4].map((n) => ({ id: `3000000${n}-0000-0000-0000-000000000000`, number: n, title: programmes[0].modules[n - 1]?.title ?? `Module ${n}` }))
+    const studs: ClassStudent[] = people.map(([f, sn, e], i) => ({ id: `4000000${i}-0000-0000-0000-000000000000`, reg_no: `IPCM/PCM/27/00${i + 1}`, status: 'active', attendance_waived: i === 2, name: `${f} ${sn}`, email: e, phone: null }))
+    body = (
+      <div className="mx-auto max-w-5xl space-y-6">
+        <PageHeader eyebrow="Classes" title="PCM · February 2027 cohort" intro="Settings, attendance, scores, results and announcements for this intake." />
+        <Card><h2 className="mb-4 text-h3 font-semibold">Class settings</h2><ClassSettingsForm cohortId={cid} mode="required" min={75} group="https://chat.whatsapp.com/example" materials={null} /></Card>
+        <Card><h2 className="mb-4 text-h3 font-semibold">Attendance · Week 1</h2><AttendanceForm cohortId={cid} sessionId={cid} students={studs.slice(0, 3)} marks={{ [studs[0].id]: 'present', [studs[1].id]: 'absent' }} /></Card>
+        <Card className="p-0"><h2 className="px-4 pt-5 text-h3 font-semibold">Scores</h2><ul className="divide-y divide-line">{studs.slice(0, 3).map((st, i) => <ScoreRow key={st.id} cohortId={cid} student={st} modules={mods} values={i === 0 ? { [mods[0].id]: 72, [mods[1].id]: 65, capstone: 80 } : {}} locked={false} />)}</ul></Card>
+        <Card><h2 className="mb-4 text-h3 font-semibold">Results</h2><ResultsActions cohortId={cid} published={false} hasResults /></Card>
+        <Card><h2 className="mb-4 text-h3 font-semibold">New announcement</h2><AnnouncementForm cohortId={cid} /></Card>
+      </div>
+    )
   }
   else if (view === 'intakes') body = <div className="mx-auto max-w-5xl"><PageHeader eyebrow="Programmes" title="Intakes" intro="Open or close an intake, set its dates and seats." /><Intakes cohorts={cohorts} programmes={programmes.map((p, i) => ({ id: `p${i}`, code: p.code, short_title: p.shortTitle }))} canEdit /></div>
   else if (view === 'fees') body = <div className="mx-auto max-w-5xl"><PageHeader eyebrow="Bursary" title="Fees" /><Fees fees={fees} canEdit /></div>

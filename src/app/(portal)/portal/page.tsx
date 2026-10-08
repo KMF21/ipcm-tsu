@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowRight, BookOpen, CalendarCheck2, ClipboardCheck, Download, MapPin, Megaphone, Receipt, Wallet } from 'lucide-react'
+import { ArrowRight, BookOpen, CalendarCheck2, ClipboardCheck, Download, FolderOpen, MapPin, Megaphone, MessageCircle, Receipt, Wallet } from 'lucide-react'
 import { Badge, ButtonLink, Card, CardHeader, StatCard, buttonClass } from '@/components/ui'
 import { createClient } from '@/lib/supabase/server'
 import { attendanceSummary, getAnnouncements, getCohortSessions, getMyAttendance, getMyEnrolment, getMyResult } from '@/lib/portal/queries'
@@ -75,7 +75,7 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
 
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard icon={<BookOpen className="h-6 w-6" />} value={String(p.modules.length)} label="Modules" hint="Plus a capstone project" />
-        <StatCard icon={<ClipboardCheck className="h-6 w-6" />} value={att.pct === null ? '—' : `${att.pct}%`} label="Attendance" tone="success" hint="If your intake records it" />
+        <StatCard icon={<ClipboardCheck className="h-6 w-6" />} value={enrolment.cohort.attendance_mode === 'off' || att.pct === null ? '—' : `${att.pct}%`} label="Attendance" tone="success" hint={enrolment.cohort.attendance_mode === 'off' ? 'Not recorded for your intake' : enrolment.cohort.attendance_mode === 'required' ? 'Counts towards your result' : 'For your information'} />
         <StatCard icon={<CalendarCheck2 className="h-6 w-6" />} value={`${att.held}/${sessions.length || FORMAT.durationWeeks}`} label="Sessions held" tone="navy" />
         <StatCard icon={<Wallet className="h-6 w-6" />} value="₦0" label="Balance due" tone="success" hint="Tuition paid" />
       </div>
@@ -112,6 +112,21 @@ export default async function StudentDashboard({ searchParams }: { searchParams:
         </div>
 
         <div className="space-y-6">
+          <Card>
+            <h2 className="text-h3 font-semibold">Class links</h2>
+            {enrolment.cohort.class_group_url || enrolment.cohort.materials_url ? (
+              <div className="mt-4 space-y-3">
+                {enrolment.cohort.class_group_url && (
+                  <a href={enrolment.cohort.class_group_url} target="_blank" rel="noopener noreferrer" className={buttonClass('primary', 'md', 'w-full')}><MessageCircle className="h-5 w-5" aria-hidden /> Join the class WhatsApp group</a>
+                )}
+                {enrolment.cohort.materials_url && (
+                  <a href={enrolment.cohort.materials_url} target="_blank" rel="noopener noreferrer" className={buttonClass('secondary', 'md', 'w-full')}><FolderOpen className="h-5 w-5" aria-hidden /> Open class materials</a>
+                )}
+              </div>
+            ) : (
+              <p className="mt-3 text-base text-ink-muted">The Institute will add your class WhatsApp group link here before classes start.</p>
+            )}
+          </Card>
           <Card>
             <h2 className="text-h3 font-semibold">Your documents</h2>
             <div className="mt-4 space-y-3">

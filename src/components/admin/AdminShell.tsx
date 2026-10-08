@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
-import { CalendarRange, ClipboardList, CreditCard, ExternalLink, Globe, Inbox, LayoutDashboard, LifeBuoy, LogOut, UsersRound, Wallet } from 'lucide-react'
+import { BookOpenCheck, CalendarRange, ClipboardList, CreditCard, ExternalLink, Globe, Inbox, LayoutDashboard, LifeBuoy, LogOut, UsersRound, Wallet } from 'lucide-react'
 import { images } from '@/lib/images'
 import { cn } from '@/lib/utils'
 import { Avatar } from '@/components/ui'
@@ -18,6 +18,7 @@ const items: Item[] = [
   { href: '/admin/applications', label: 'Applications', short: 'Applications', Icon: ClipboardList, show: can.review },
   { href: '/admin/payments', label: 'Payments', short: 'Payments', Icon: CreditCard, show: can.money },
   { href: '/admin/intakes', label: 'Intakes', short: 'Intakes', Icon: CalendarRange, show: can.seeIntakes },
+  { href: '/admin/classes', label: 'Classes', short: 'Classes', Icon: BookOpenCheck, show: can.classes },
   { href: '/admin/fees', label: 'Fees', short: 'Fees', Icon: Wallet, show: can.manageFees },
   { href: '/admin/help', label: 'Applicant help', short: 'Help', Icon: LifeBuoy, show: can.helpApplicants },
   { href: '/admin/messages', label: 'Messages', short: 'Messages', Icon: Inbox, show: can.messages },

@@ -4,19 +4,15 @@ Website, student portal and admin portal for the **Institute of Peace and Confli
 
 The full specification is the *IPCM-TSU Platform — Master Build Prompt*; content comes from the *Content & Programme Brief*.
 
-## Status: Phase 0 (foundation + design preview)
+## Status
 
 | Area | State |
 | --- | --- |
-| Design system (tokens, fonts, 20+ components) | Done — see `/styleguide` |
-| Homepage | Done (placeholder content) |
-| Programme pages (all 5) | Done — `/programmes/[slug]` |
-| Student dashboard | Done with demo data — `/portal` |
-| Supabase schema, business logic, RLS, storage, seed | Done and tested (`pnpm test:db`) |
-| Other pages | "Coming soon" stubs so no link 404s |
-| Accounts (register, verify, login, reset, logout, role redirects) | Done (Phase 1) |
-| Application wizard + Paystack (pay after choosing programme, free submit) | Done (Phase 1) |
-| Admin review, offers | Phase 1, next |
+| Public website, design system (`/styleguide`) | Done |
+| Accounts, application wizard, Paystack | Done (Phase 1) |
+| Admin review, offers, letters, receipts, emails | Done (Phase 1) |
+| Classes: scores, results, optional attendance and timetable, announcements, class links | Done (Phase 2) |
+| Certificates | Phase 3 (to be discussed) |
 
 ## Getting started
 
@@ -141,6 +137,17 @@ All decisions are recorded in the timeline and audit log. Design preview: `/styl
   Each section of the People page shows the sample list until someone is added to it.
 - After admission, students can change phone and address but not their name or email (they appear on documents);
   staff correct those under Applicant help.
+
+## Classes (Phase 2, `/admin/classes`)
+
+Migration `20261008000012_classes.sql` adds this. Run it after 009, 010 and 011.
+
+- **Who sees what.** The Director and super admins see every intake. A Facilitator sees only the intakes the Director assigns them to (Classes → intake → Overview → Facilitators). Create facilitators under Staff accounts with the Facilitator role.
+- **Settings (Director).** Attendance per intake: Off (default), For information only, or Required with a minimum %. The minimum can be waived for any student. Also the class WhatsApp group link and an optional materials folder link (Drive), shown on each student's dashboard. No files are uploaded or recorded, so this stays a classroom programme, not ODL.
+- **Timetable** is optional; nothing depends on it. Attendance needs a session to mark against.
+- **Scores.** Facilitators and the Director enter module and capstone scores (0–100). Once results are published only the Director can change scores, after unpublishing.
+- **Results (Director).** Calculate → check → Publish. Publishing marks students completed or failed and emails them. Unpublish to correct mistakes.
+- **Announcements.** Posted to one intake only, with an option to email the class.
 
 ## Admission letters
 

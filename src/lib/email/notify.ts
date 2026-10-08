@@ -151,3 +151,29 @@ export async function sendOfferReminders(ctx: Ctx, now = new Date()) {
   return summary
 }
 
+
+/** Emails every student in an intake (announcements) or each student their outcome (results). */
+export async function notifyClass(ctx: Ctx, cohortId: string, what: { kind: 'announcement'; title: string; body: string } | { kind: 'results' }) {
+  try {
+    const admin = createAdminClient()
+    const { data: c } = await admin.from('cohorts').select('name, programmes(title)').eq('id', cohortId).single()
+    const programme = (c?.programmes as unknown as { title: string } | null)?.title ?? 'programme'
+    const { data: rows } = await admin
+      .from('enrolments')
+      .select('id, user_id, application_id, profiles!enrolments_user_id_fkey(first_name, email), results(classification, published_at)')
+      .eq('cohort_id', cohortId)
+    for (const e of (rows ?? []) as unknown as { id: string; user_id: string; application_id: string; profiles: { first_name: string | null; email: string } | null; results: { classification: string | null; published_at: string | null } | { classification: string | null; published_at: string | null }[] | null }[]) {
+      if (!e.profiles?.email) continue
+      const base = { to: e.profiles.email, userId: e.user_id, applicationId: e.application_id }
+      if (what.kind === 'announcement') {
+        await sendEmail({ ...T.classAnnouncement(ctx, { firstName: e.profiles.first_name ?? '', programme, cohort: c?.name ?? '', title: what.title, body: what.body }), ...base, kind: 'announcement' })
+      } else {
+        const r = Array.isArray(e.results) ? e.results[0] : e.results
+        if (!r?.published_at || !r.classification) continue
+        await sendEmail({ ...T.resultsPublished(ctx, { firstName: e.profiles.first_name ?? '', programme, classification: r.classification }), ...base, kind: 'results', dedupeKey: `results:${e.id}:${r.published_at}` })
+      }
+    }
+  } catch (err) {
+    console.error('[email] notifyClass', err)
+  }
+}
