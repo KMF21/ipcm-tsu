@@ -3,9 +3,9 @@ import { FEES, programmes } from '../programmes'
 import { formatNaira, initials } from '../utils'
 
 describe('fees', () => {
-  it('charges ₦15,300 to apply and ₦35,300 tuition', () => {
-    expect(formatNaira(FEES.application.base + FEES.application.processing)).toBe('₦15,300')
-    expect(formatNaira(FEES.tuition.base + FEES.tuition.processing)).toBe('₦35,300')
+  it('charges ₦35,300 to apply and ₦100,300 tuition', () => {
+    expect(formatNaira(FEES.application.base + FEES.application.processing)).toBe('₦35,300')
+    expect(formatNaira(FEES.tuition.base + FEES.tuition.processing)).toBe('₦100,300')
   })
   it('stores amounts as whole kobo', () => {
     for (const f of Object.values(FEES)) {

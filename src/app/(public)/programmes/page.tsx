@@ -4,7 +4,8 @@ import { ButtonLink, SectionHeading } from '@/components/ui'
 import { PageHero } from '@/components/site/PageHero'
 import { ProgrammeCard } from '@/components/site/ProgrammeCard'
 import { images } from '@/lib/images'
-import { FEES, FORMAT, programmes } from '@/lib/programmes'
+import { FORMAT, programmes } from '@/lib/programmes'
+import { getPublicFees, programmeFees } from '@/lib/fees-public'
 import { formatNaira } from '@/lib/utils'
 
 export const metadata = {
@@ -12,7 +13,10 @@ export const metadata = {
   description: 'Five professional certificate programmes in peace and conflict management at Taraba State University: eight Saturdays, four modules and a practical capstone.',
 }
 
-export default function ProgrammesPage() {
+export const revalidate = 600
+
+export default async function ProgrammesPage() {
+  const fees = await getPublicFees()
   const format = [
     { Icon: Clock, label: 'Duration', value: `${FORMAT.durationWeeks} weeks, ${FORMAT.contactHours} contact hours` },
     { Icon: CalendarDays, label: 'Schedule', value: FORMAT.schedule },
@@ -37,7 +41,7 @@ export default function ProgrammesPage() {
       <section className="section bg-canvas">
         <div className="container-page">
           <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {programmes.map((p) => <li key={p.code}><ProgrammeCard p={p} /></li>)}
+            {programmes.map((p) => <li key={p.code}><ProgrammeCard p={p} tuition={programmeFees(fees, p.code).tuition.base} /></li>)}
             <li className="flex flex-col justify-between rounded-card bg-navy p-7 text-white shadow-card">
               <div>
                 <h2 className="text-h3 font-semibold text-white">New to peace work?</h2>
@@ -97,7 +101,7 @@ export default function ProgrammesPage() {
 
       <section className="bg-teal">
         <div className="container-page flex flex-col items-center gap-6 py-16 text-center">
-          <h2 className="max-w-2xl text-[1.75rem] font-semibold leading-9 text-white sm:text-h2">{formatNaira(FEES.tuition.base)} tuition. Eight Saturdays. A TSU certificate.</h2>
+          <h2 className="max-w-2xl text-[1.75rem] font-semibold leading-9 text-white sm:text-h2">{formatNaira(fees.tuition.base)} tuition. Eight Saturdays. A TSU certificate.</h2>
           <div className="flex flex-col gap-3 sm:flex-row">
             <ButtonLink href="/register" variant="light" size="lg">Apply now</ButtonLink>
             <ButtonLink href="/admissions" size="lg" className="border border-white/60 bg-transparent hover:bg-white/10">How admissions work</ButtonLink>

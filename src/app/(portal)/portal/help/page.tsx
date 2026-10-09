@@ -1,12 +1,16 @@
 import { Mail, MessageCircle, Phone } from 'lucide-react'
 import { Accordion, ButtonLink, Card } from '@/components/ui'
 import { PortalHeader } from '@/components/portal/PortalHeader'
-import { faqGroups } from '@/lib/content'
+import { buildFaqGroups } from '@/lib/content'
+import { feeTotal, getPublicFees } from '@/lib/fees-public'
+import { formatNaira } from '@/lib/utils'
 import { site } from '@/lib/site'
 
 export const metadata = { title: 'Help' }
 
-export default function HelpPage() {
+export default async function HelpPage() {
+  const fees = await getPublicFees()
+  const faqGroups = buildFaqGroups(formatNaira(feeTotal(fees.application)), formatNaira(feeTotal(fees.tuition)))
   const wa = site.whatsapp.value.replace(/[^\d]/g, '')
   const items = faqGroups.flatMap((g) => (g.id === 'applying' || g.id === 'fees' || g.id === 'account' ? g.items : [])).slice(0, 10)
   return (

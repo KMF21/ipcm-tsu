@@ -40,11 +40,11 @@ const as = async (uid) => db.exec(uid ? `set request.jwt.sub = '${uid}'` : `rese
 await as(u.id)
 try { await one(`select public.applicant_submit($1)`, [a.id]); check('cannot submit before paying', false) } catch (e) { check('cannot submit before paying', /Pay the application fee first/.test(e.message)) }
 const [{ r: pay1 }] = await one(`select public.create_payment('application') r`)
-check('create_payment uses server-side amount', pay1.amount_kobo === 1530000, String(pay1.amount_kobo))
+check('create_payment uses server-side amount', pay1.amount_kobo === 3530000, String(pay1.amount_kobo))
 await as(null)
-const r1 = (await one(`select public.confirm_payment($1, 1530000, '{}'::jsonb) r`, [pay1.reference]))[0].r
+const r1 = (await one(`select public.confirm_payment($1, 3530000, '{}'::jsonb) r`, [pay1.reference]))[0].r
 check('application fee confirmed with receipt', /^RCT-\d{4}-\d{6}$/.test(r1.receipt_no), r1.receipt_no)
-const r1b = (await one(`select public.confirm_payment($1, 1530000, '{}'::jsonb) r`, [pay1.reference]))[0].r
+const r1b = (await one(`select public.confirm_payment($1, 3530000, '{}'::jsonb) r`, [pay1.reference]))[0].r
 check('replayed webhook is ignored', r1b.already_processed === true)
 const st1 = (await one(`select status, application_fee_paid_at is not null paid from public.applications where id=$1`, [a.id]))[0]
 check('paying unlocks the form but does not submit', st1.status === 'draft' && st1.paid === true, JSON.stringify(st1))
@@ -59,11 +59,11 @@ await one(`select public.transition_application($1,'under_review',$2)`, [a.id, u
 await one(`select public.transition_application($1,'offered',$2)`, [a.id, u.id])
 await as(u.id)
 const [{ r: pay2 }] = await one(`select public.create_payment('tuition') r`)
-check('tuition amount from fee table', pay2.amount_kobo === 3530000, String(pay2.amount_kobo))
+check('tuition amount from fee table', pay2.amount_kobo === 10030000, String(pay2.amount_kobo))
 await as(null)
 try { await one(`select public.confirm_payment($1, 100, '{}'::jsonb)`, [pay2.reference]); check('wrong amount rejected', false) } catch (e) { check('wrong amount rejected', /Amount mismatch/.test(e.message)) }
 const [{ r: pay3 }] = await (async () => { await as(u.id); const x = await one(`select public.create_payment('tuition') r`); await as(null); return x })()
-const r3 = (await one(`select public.confirm_payment($1, 3530000, '{}'::jsonb) r`, [pay3.reference]))[0].r
+const r3 = (await one(`select public.confirm_payment($1, 10030000, '{}'::jsonb) r`, [pay3.reference]))[0].r
 check('tuition issues registration number', r3.reg_no === 'TSU/IPCM/NMA/2027/0001', r3.reg_no)
 check('applicant becomes student', (await one(`select role from public.profiles where id=$1`, [u.id]))[0].role === 'student')
 console.log('history:', (await one(`select string_agg(to_status::text, ' > ' order by id) h from public.application_status_history`))[0].h)
@@ -83,7 +83,7 @@ const [p1] = await one(`select id, verify_token from public.payments where refer
 check('payment has unguessable verify token', /^[0-9a-f]{32}$/.test(p1.verify_token))
 await as(u.id)
 const rc = (await one(`select public.get_receipt($1) r`, [p1.id]))[0].r
-check('payer can load own receipt', rc?.receipt_no === r1.receipt_no && rc.amount_kobo === 1530000 && rc.fee_type === 'application', rc?.receipt_no)
+check('payer can load own receipt', rc?.receipt_no === r1.receipt_no && rc.amount_kobo === 3530000 && rc.fee_type === 'application', rc?.receipt_no)
 const rcT = (await one(`select public.get_receipt(id) r from public.payments where reference=$1`, [pay3.reference]))[0].r
 check('tuition receipt shows registration number', rcT?.reg_no === 'TSU/IPCM/NMA/2027/0001', rcT?.reg_no)
 const [u2] = await one(`insert into auth.users (email) values ('other@example.com') returning id`)
@@ -108,7 +108,7 @@ const newApplicant = async (email) => {
 }
 const b = await newApplicant('bola@example.com')
 await as(b.uid); const [{ r: pb }] = await one(`select public.create_payment('application') r`); await as(null)
-await one(`select public.confirm_payment($1, 1530000, '{}'::jsonb)`, [pb.reference])
+await one(`select public.confirm_payment($1, 3530000, '{}'::jsonb)`, [pb.reference])
 await as(b.uid); await one(`select public.applicant_submit($1)`, [b.app]); await as(null)
 const [doc1] = await one(`insert into public.documents (application_id, user_id, type, storage_path, mime, size_bytes) values ($1,$2,'passport_photo','x/a.jpg','image/jpeg',1000) returning id`, [b.app, b.uid])
 const [doc2] = await one(`insert into public.documents (application_id, user_id, type, storage_path, mime, size_bytes) values ($1,$2,'qualification','x/b.pdf','application/pdf',1000) returning id`, [b.app, b.uid])
@@ -163,7 +163,7 @@ const dash = (await one(`select public.staff_dashboard() r`))[0].r
 check('dashboard counts applications', dash.admitted === 1 && !('received_kobo' in dash), JSON.stringify(dash).slice(0, 90))
 await as(null); await one(`update public.profiles set role='bursary' where id=$1`, [staff.id]); await as(staff.id)
 const dash2 = (await one(`select public.staff_dashboard() r`))[0].r
-check('bursary sees money received', dash2.received_kobo === 1530000 * 2 + 3530000, String(dash2.received_kobo))
+check('bursary sees money received', dash2.received_kobo === 3530000 * 2 + 10030000, String(dash2.received_kobo))
 const seats = (await one(`select * from public.staff_intake_seats() where cohort_id=$1`, [c.cohort]))[0]
 check('intake seats counted', seats.admitted === 1 && seats.seats_taken === 1, JSON.stringify(seats))
 await as(b.uid)

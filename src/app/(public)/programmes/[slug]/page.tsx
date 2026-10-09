@@ -6,9 +6,12 @@ import { CalendarDays, CheckCircle2, ChevronRight, Clock, MapPin, Target, Users,
 import { Accordion, Avatar, ButtonLink, PlaceholderTag } from '@/components/ui'
 import { ProgrammeCard } from '@/components/site/ProgrammeCard'
 import { images } from '@/lib/images'
-import { FEES, FORMAT, getProgramme, programmes } from '@/lib/programmes'
+import { FORMAT, getProgramme, programmes } from '@/lib/programmes'
+import { feeTotal, getPublicFees, programmeFees } from '@/lib/fees-public'
 import { site } from '@/lib/site'
 import { formatDate, formatNaira } from '@/lib/utils'
+
+export const revalidate = 600
 
 export function generateStaticParams() {
   return programmes.map((p) => ({ slug: p.slug }))
@@ -25,14 +28,16 @@ export default async function ProgrammePage({ params }: { params: Promise<{ slug
   if (!p) notFound()
   const hero = images.programmeHeroes[p.code] ?? images.programmes[p.code]
   const intake = site.nextIntake
-  const appFee = FEES.application.base + FEES.application.processing
-  const tuition = FEES.tuition.base + FEES.tuition.processing
+  const fees = await getPublicFees()
+  const own = programmeFees(fees, p.code)
+  const appFee = feeTotal(own.application)
+  const tuition = feeTotal(own.tuition)
 
   const facts = [
     { Icon: Clock, label: 'Duration', value: `${FORMAT.durationWeeks} weeks` },
     { Icon: CalendarDays, label: 'Schedule', value: 'Saturdays, 9am–4pm' },
     { Icon: MapPin, label: 'Mode', value: 'In person + portal' },
-    { Icon: Wallet, label: 'Tuition', value: formatNaira(FEES.tuition.base) },
+    { Icon: Wallet, label: 'Tuition', value: formatNaira(own.tuition.base) },
     { Icon: Users, label: 'Cohort', value: `Up to ${FORMAT.cohortSize}` },
   ]
 
@@ -43,7 +48,7 @@ export default async function ProgrammePage({ params }: { params: Promise<{ slug
     description: p.overview,
     courseCode: p.code,
     provider: { '@type': 'CollegeOrUniversity', name: 'Taraba State University', sameAs: site.tsuUrl },
-    offers: { '@type': 'Offer', price: (FEES.tuition.base / 100).toString(), priceCurrency: 'NGN', category: 'Paid' },
+    offers: { '@type': 'Offer', price: (own.tuition.base / 100).toString(), priceCurrency: 'NGN', category: 'Paid' },
   }
 
   return (
@@ -76,11 +81,11 @@ export default async function ProgrammePage({ params }: { params: Promise<{ slug
       <section aria-label="Key facts" className="border-b border-line bg-white">
         <div className="container-page grid grid-cols-2 gap-x-4 gap-y-5 py-6 sm:grid-cols-3 lg:grid-cols-5">
           {facts.map(({ Icon, label, value }) => (
-            <div key={label} className="flex items-center gap-3">
+            <div key={label} className="flex min-w-0 items-center gap-3">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal"><Icon className="h-5 w-5" aria-hidden /></span>
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm text-ink-muted">{label}</p>
-                <p className="whitespace-nowrap font-semibold text-navy">{value}</p>
+                <p className="font-semibold text-navy">{value}</p>
               </div>
             </div>
           ))}
@@ -226,7 +231,7 @@ export default async function ProgrammePage({ params }: { params: Promise<{ slug
           <h2 className="text-[1.5rem] font-semibold sm:text-h2">Other programmes</h2>
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {programmes.filter((x) => x.code !== p.code).map((x) => (
-              <ProgrammeCard key={x.code} p={x} />
+              <ProgrammeCard key={x.code} p={x} tuition={programmeFees(fees, x.code).tuition.base} />
             ))}
           </div>
         </div>

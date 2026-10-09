@@ -67,5 +67,8 @@ export async function saveFee(_: ActionState, fd: FormData): Promise<ActionState
     return { error: 'We couldn’t save this fee. Please try again.' }
   }
   revalidatePath('/admin/fees')
+  // The public site shows these fees too.
+  for (const path of ['/', '/admissions', '/programmes', '/faq']) revalidatePath(path)
+  revalidatePath('/programmes/[slug]', 'page')
   return { ok: true, message: 'Fee saved. New payments use this amount.' }
 }

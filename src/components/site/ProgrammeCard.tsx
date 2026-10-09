@@ -5,7 +5,7 @@ import { images } from '@/lib/images'
 import { FEES, FORMAT, type Programme } from '@/lib/programmes'
 import { formatNaira } from '@/lib/utils'
 
-export function ProgrammeCard({ p }: { p: Programme }) {
+export function ProgrammeCard({ p, tuition = FEES.tuition.base }: { p: Programme; tuition?: number }) {
   const img = images.programmes[p.code]
   return (
     <Link
@@ -21,7 +21,7 @@ export function ProgrammeCard({ p }: { p: Programme }) {
         <p className="mt-3 flex-1 text-base text-ink-muted">{p.promise}</p>
         <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 border-t border-line pt-4 text-label text-ink">
           <span className="flex items-center gap-1.5"><CalendarDays className="h-[18px] w-[18px] text-teal" aria-hidden /> {FORMAT.durationWeeks} weeks · Saturdays</span>
-          <span className="flex items-center gap-1.5"><Wallet className="h-[18px] w-[18px] text-teal" aria-hidden /> {formatNaira(FEES.tuition.base)} tuition</span>
+          <span className="flex items-center gap-1.5"><Wallet className="h-[18px] w-[18px] text-teal" aria-hidden /> {formatNaira(tuition)} tuition</span>
         </div>
         <span className="mt-5 inline-flex items-center gap-2 font-semibold text-teal">
           Learn more <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" aria-hidden />

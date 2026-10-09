@@ -60,9 +60,9 @@ select id, m.number, m.title, m.summary from public.programmes, (values
 ) as m(number, title, summary) where code = 'PCM'
 on conflict do nothing;
 insert into public.fee_items (programme_id, type, base_amount_kobo, processing_fee_kobo)
-select id, 'application'::public.fee_type, 1500000, 30000 from public.programmes where code = 'PCM'
+select id, 'application'::public.fee_type, 3500000, 30000 from public.programmes where code = 'PCM'
 union all
-select id, 'tuition'::public.fee_type, 3500000, 30000 from public.programmes where code = 'PCM'
+select id, 'tuition'::public.fee_type, 10000000, 30000 from public.programmes where code = 'PCM'
 on conflict do nothing;
 insert into public.cohorts (programme_id, name, start_date, end_date, application_deadline, capacity, venue, status)
 select id, 'PCM – February 2027', '2027-02-06', '2027-03-27', '2027-01-31', 40, 'IPCM Lecture Hall, Taraba State University, Jalingo', 'open'
@@ -81,9 +81,9 @@ select id, m.number, m.title, m.summary from public.programmes, (values
 ) as m(number, title, summary) where code = 'NMA'
 on conflict do nothing;
 insert into public.fee_items (programme_id, type, base_amount_kobo, processing_fee_kobo)
-select id, 'application'::public.fee_type, 1500000, 30000 from public.programmes where code = 'NMA'
+select id, 'application'::public.fee_type, 3500000, 30000 from public.programmes where code = 'NMA'
 union all
-select id, 'tuition'::public.fee_type, 3500000, 30000 from public.programmes where code = 'NMA'
+select id, 'tuition'::public.fee_type, 10000000, 30000 from public.programmes where code = 'NMA'
 on conflict do nothing;
 insert into public.cohorts (programme_id, name, start_date, end_date, application_deadline, capacity, venue, status)
 select id, 'NMA – February 2027', '2027-02-06', '2027-03-27', '2027-01-31', 40, 'IPCM Lecture Hall, Taraba State University, Jalingo', 'open'
@@ -102,9 +102,9 @@ select id, m.number, m.title, m.summary from public.programmes, (values
 ) as m(number, title, summary) where code = 'CEW'
 on conflict do nothing;
 insert into public.fee_items (programme_id, type, base_amount_kobo, processing_fee_kobo)
-select id, 'application'::public.fee_type, 1500000, 30000 from public.programmes where code = 'CEW'
+select id, 'application'::public.fee_type, 3500000, 30000 from public.programmes where code = 'CEW'
 union all
-select id, 'tuition'::public.fee_type, 3500000, 30000 from public.programmes where code = 'CEW'
+select id, 'tuition'::public.fee_type, 10000000, 30000 from public.programmes where code = 'CEW'
 on conflict do nothing;
 insert into public.cohorts (programme_id, name, start_date, end_date, application_deadline, capacity, venue, status)
 select id, 'CEW – February 2027', '2027-02-06', '2027-03-27', '2027-01-31', 40, 'IPCM Lecture Hall, Taraba State University, Jalingo', 'open'
@@ -123,9 +123,9 @@ select id, m.number, m.title, m.summary from public.programmes, (values
 ) as m(number, title, summary) where code = 'PHR'
 on conflict do nothing;
 insert into public.fee_items (programme_id, type, base_amount_kobo, processing_fee_kobo)
-select id, 'application'::public.fee_type, 1500000, 30000 from public.programmes where code = 'PHR'
+select id, 'application'::public.fee_type, 3500000, 30000 from public.programmes where code = 'PHR'
 union all
-select id, 'tuition'::public.fee_type, 3500000, 30000 from public.programmes where code = 'PHR'
+select id, 'tuition'::public.fee_type, 10000000, 30000 from public.programmes where code = 'PHR'
 on conflict do nothing;
 insert into public.cohorts (programme_id, name, start_date, end_date, application_deadline, capacity, venue, status)
 select id, 'PHR – February 2027', '2027-02-06', '2027-03-27', '2027-01-31', 40, 'IPCM Lecture Hall, Taraba State University, Jalingo', 'open'
@@ -144,9 +144,9 @@ select id, m.number, m.title, m.summary from public.programmes, (values
 ) as m(number, title, summary) where code = 'PSS'
 on conflict do nothing;
 insert into public.fee_items (programme_id, type, base_amount_kobo, processing_fee_kobo)
-select id, 'application'::public.fee_type, 1500000, 30000 from public.programmes where code = 'PSS'
+select id, 'application'::public.fee_type, 3500000, 30000 from public.programmes where code = 'PSS'
 union all
-select id, 'tuition'::public.fee_type, 3500000, 30000 from public.programmes where code = 'PSS'
+select id, 'tuition'::public.fee_type, 10000000, 30000 from public.programmes where code = 'PSS'
 on conflict do nothing;
 insert into public.cohorts (programme_id, name, start_date, end_date, application_deadline, capacity, venue, status)
 select id, 'PSS – February 2027', '2027-02-06', '2027-03-27', '2027-01-31', 40, 'IPCM Lecture Hall, Taraba State University, Jalingo', 'open'

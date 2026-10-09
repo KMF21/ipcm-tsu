@@ -2,7 +2,8 @@ import { CalendarDays, CheckCircle2, ClipboardCheck, CreditCard, FileCheck2, Fil
 import { ButtonLink, SectionHeading } from '@/components/ui'
 import { PageHero } from '@/components/site/PageHero'
 import { images } from '@/lib/images'
-import { FEES, FORMAT, programmes } from '@/lib/programmes'
+import { FORMAT, programmes } from '@/lib/programmes'
+import { feeTotal, getPublicFees } from '@/lib/fees-public'
 import { DOC_RULES, formatBytes, type DocType } from '@/lib/application/steps'
 import { site } from '@/lib/site'
 import { createPublicClient } from '@/lib/supabase/public'
@@ -29,9 +30,9 @@ async function openIntakes(): Promise<Intake[]> {
   return (data ?? []) as unknown as Intake[]
 }
 
-const steps = [
+const stepsFor = (appFee: string) => [
   { Icon: UserPlus, title: 'Create an account', body: 'Register with your name, email and a password. It takes a minute.' },
-  { Icon: CreditCard, title: 'Choose and pay', body: `Pick your programme and intake, check you meet the requirements, then pay the ${formatNaira(FEES.application.base + FEES.application.processing)} application fee online.` },
+  { Icon: CreditCard, title: 'Choose and pay', body: `Pick your programme and intake, check you meet the requirements, then pay the ${appFee} application fee online.` },
   { Icon: FileText, title: 'Complete and submit', body: 'Fill in your details, upload your documents and submit. Your progress saves as you go. Submitting is free.' },
   { Icon: ClipboardCheck, title: 'Review', body: 'Admissions checks your documents. If something needs fixing, you are told exactly what and can replace it.' },
   { Icon: Mail, title: 'Receive an offer', body: 'You are emailed an offer of admission and have 30 days to accept it by paying tuition.' },
@@ -49,8 +50,10 @@ const fmt = (m: string[]) => m.map((x) => (x === 'application/pdf' ? 'PDF' : x =
 
 export default async function AdmissionsPage() {
   const intakes = await openIntakes()
-  const appFee = FEES.application.base + FEES.application.processing
-  const tuition = FEES.tuition.base + FEES.tuition.processing
+  const fees = await getPublicFees()
+  const appFee = feeTotal(fees.application)
+  const tuition = feeTotal(fees.tuition)
+  const steps = stepsFor(formatNaira(appFee))
   return (
     <>
       <PageHero eyebrow="Admissions" crumb="Admissions" title="Apply in an evening. Start on a Saturday." intro="Everything you need to know before you apply: who can join, what it costs, which documents to prepare and what happens after you submit." image={images.programmeHeroes.PCM}>
@@ -158,11 +161,11 @@ export default async function AdmissionsPage() {
               </thead>
               <tbody className="divide-y divide-line">
                 <tr>
-                  <th scope="row" className="px-4 py-4 font-normal sm:px-6"><span className="font-semibold text-navy">Application fee</span><span className="block text-sm text-ink-muted">{formatNaira(FEES.application.base)} + {formatNaira(FEES.application.processing)} processing. Paid when you start.</span></th>
+                  <th scope="row" className="px-4 py-4 font-normal sm:px-6"><span className="font-semibold text-navy">Application fee</span><span className="block text-sm text-ink-muted">{formatNaira(fees.application.base)} + {formatNaira(fees.application.processing)} processing. Paid when you start.</span></th>
                   <td className="whitespace-nowrap px-4 py-4 text-right font-display text-lg font-bold text-navy sm:px-6">{formatNaira(appFee)}</td>
                 </tr>
                 <tr>
-                  <th scope="row" className="px-4 py-4 font-normal sm:px-6"><span className="font-semibold text-navy">Tuition</span><span className="block text-sm text-ink-muted">{formatNaira(FEES.tuition.base)} + {formatNaira(FEES.tuition.processing)} processing. Paid after your offer.</span></th>
+                  <th scope="row" className="px-4 py-4 font-normal sm:px-6"><span className="font-semibold text-navy">Tuition</span><span className="block text-sm text-ink-muted">{formatNaira(fees.tuition.base)} + {formatNaira(fees.tuition.processing)} processing. Paid after your offer.</span></th>
                   <td className="whitespace-nowrap px-4 py-4 text-right font-display text-lg font-bold text-navy sm:px-6">{formatNaira(tuition)}</td>
                 </tr>
               </tbody>

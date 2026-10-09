@@ -37,11 +37,10 @@ export const directorWelcome = [
 
 export const audiences = ['Security officers', 'Public servants', 'Traditional and religious leaders', 'NGO and humanitarian staff', 'Journalists', 'Graduates entering peace work']
 
-const appFee = formatNaira(FEES.application.base + FEES.application.processing)
-const tuition = formatNaira(FEES.tuition.base + FEES.tuition.processing)
 
 export type Faq = { q: string; a: string }
-export const faqGroups: { id: string; title: string; items: Faq[] }[] = [
+export function buildFaqGroups(appFee: string, tuition: string): { id: string; title: string; items: Faq[] }[] {
+  return [
   {
     id: 'applying',
     title: 'Applying',
@@ -95,7 +94,14 @@ export const faqGroups: { id: string; title: string; items: Faq[] }[] = [
       { q: 'Where are my receipts and admission letter?', a: 'In your portal, under Payments and on your application page. They are also emailed to you.' },
     ],
   },
-]
+  ]
+}
+
+/** With the standard fees. Pages that can, use buildFaqGroups with the live fees instead. */
+export const faqGroups = buildFaqGroups(
+  formatNaira(FEES.application.base + FEES.application.processing),
+  formatNaira(FEES.tuition.base + FEES.tuition.processing),
+)
 
 export type Person = { name: string; role: string; group: 'director' | 'board' | 'staff' | 'facilitator'; bio?: string; expertise?: string[]; photo?: string | null; placeholder: boolean }
 

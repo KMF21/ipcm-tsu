@@ -15,7 +15,8 @@ import {
 import { Accordion, ButtonLink, PlaceholderTag, SectionHeading } from '@/components/ui'
 import { ProgrammeCard } from '@/components/site/ProgrammeCard'
 import { images } from '@/lib/images'
-import { FEES, programmes } from '@/lib/programmes'
+import { programmes } from '@/lib/programmes'
+import { feeTotal, getPublicFees, programmeFees } from '@/lib/fees-public'
 import { site } from '@/lib/site'
 import { formatDate, formatNaira } from '@/lib/utils'
 
@@ -26,21 +27,26 @@ const values = [
   { Icon: Globe2, title: 'Local roots, global standard', body: 'Indigenous approaches to peace alongside international best practice.' },
 ]
 
-const steps = [
-  { Icon: FileText, title: 'Apply online', body: `Create an account, complete the form and pay the ${formatNaira(FEES.application.base + FEES.application.processing)} application fee.` },
+const stepsFor = (appFee: string) => [
+  { Icon: FileText, title: 'Apply online', body: `Create an account, complete the form and pay the ${appFee} application fee.` },
   { Icon: ClipboardCheck, title: 'Get admitted', body: 'We review your application and send an offer by email and in your portal.' },
   { Icon: BookOpenCheck, title: 'Learn', body: 'Attend eight Saturdays, complete four modules and a practical capstone.' },
   { Icon: GraduationCap, title: 'Get certified', body: 'Receive your TSU certificate with a QR code for instant verification.' },
 ]
 
-const faqs = [
+const faqsFor = (appFee: string, tuition: string) => [
   { q: 'Who can apply?', a: "Anyone with five O'Level credits including English, or anyone aged 25 and above with at least two years of relevant work or community experience." },
-  { q: 'How much does a programme cost?', a: `The application fee is ${formatNaira(FEES.application.base + FEES.application.processing)} and tuition is ${formatNaira(FEES.tuition.base + FEES.tuition.processing)}. Each includes a ₦300 processing charge.` },
+  { q: 'How much does a programme cost?', a: `The application fee is ${appFee} and tuition is ${tuition}. Each includes a ₦300 processing charge.` },
   { q: 'When do classes hold?', a: 'On Saturdays, 9:00am to 4:00pm, for eight weeks. Materials are shared through your class group and portal.' },
   { q: 'Can my organisation sponsor several staff?', a: 'Yes. Organisations can nominate staff and pay with a single invoice. Contact the admissions office to arrange it.' },
 ]
 
-export default function HomePage() {
+export const revalidate = 600
+
+export default async function HomePage() {
+  const fees = await getPublicFees()
+  const steps = stepsFor(formatNaira(feeTotal(fees.application)))
+  const faqs = faqsFor(formatNaira(feeTotal(fees.application)), formatNaira(feeTotal(fees.tuition)))
   const intake = site.nextIntake
   return (
     <>
@@ -107,7 +113,7 @@ export default function HomePage() {
           </div>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {programmes.map((p) => (
-              <ProgrammeCard key={p.code} p={p} />
+              <ProgrammeCard key={p.code} p={p} tuition={programmeFees(fees, p.code).tuition.base} />
             ))}
             <div className="flex flex-col justify-between rounded-card bg-teal p-7 text-white shadow-card">
               <div>

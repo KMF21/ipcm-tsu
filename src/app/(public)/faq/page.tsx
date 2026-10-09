@@ -1,11 +1,17 @@
 import { MessageCircleQuestion } from 'lucide-react'
 import { Accordion, ButtonLink } from '@/components/ui'
 import { PageHero } from '@/components/site/PageHero'
-import { faqGroups } from '@/lib/content'
+import { buildFaqGroups } from '@/lib/content'
+import { feeTotal, getPublicFees } from '@/lib/fees-public'
+import { formatNaira } from '@/lib/utils'
 
 export const metadata = { title: 'Frequently asked questions', description: 'Answers about applying, fees, classes, certificates and your account at the Institute of Peace and Conflict Management, TSU.' }
 
-export default function FaqPage() {
+export const revalidate = 600
+
+export default async function FaqPage() {
+  const fees = await getPublicFees()
+  const faqGroups = buildFaqGroups(formatNaira(feeTotal(fees.application)), formatNaira(feeTotal(fees.tuition)))
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',

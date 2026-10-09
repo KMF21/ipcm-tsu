@@ -39,8 +39,8 @@ export const FORMAT = {
 
 /** Amounts in kobo. */
 export const FEES = {
-  application: { base: 1_500_000, processing: 30_000 },
-  tuition: { base: 3_500_000, processing: 30_000 },
+  application: { base: 3_500_000, processing: 30_000 },
+  tuition: { base: 10_000_000, processing: 30_000 },
 }
 
 export const programmes: Programme[] = [
